@@ -1,5 +1,8 @@
 # MauiSensorKit
 
+[![NuGet](https://img.shields.io/nuget/v/MauiSensorKit.svg)](https://www.nuget.org/packages/MauiSensorKit/)
+[![Build](https://github.com/dharamhbtik/MauiSensorKit/actions/workflows/build-and-publish.yml/badge.svg)](https://github.com/dharamhbtik/MauiSensorKit/actions)
+
 A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.
 
 ## Installation
@@ -218,6 +221,64 @@ Batches are sent as:
 <string>Used to measure ambient sound levels only (no recording)</string>
 <key>NFCReaderUsageDescription</key>
 <string>Used to detect nearby NFC tags</string>
+```
+
+## Building from Source
+
+### Prerequisites
+- .NET 10 SDK
+- MAUI workload installed
+- Android SDK (for Android builds)
+- Xcode (for iOS builds on macOS)
+
+### Build Commands
+
+```bash
+# Clone the repository
+git clone https://github.com/dharamhbtik/MauiSensorKit.git
+cd MauiSensorKit
+
+# Build the library
+dotnet build src/MauiSensorKit/MauiSensorKit.csproj -c Release
+
+# Run the sample app (Android)
+dotnet build samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj -f net10.0-android -t:Run
+
+# Create NuGet package
+dotnet pack src/MauiSensorKit/MauiSensorKit.csproj -c Release
+```
+
+### Project Structure
+
+```
+MauiSensorKit/
+├── src/
+│   └── MauiSensorKit/           # Main library
+│       ├── Collectors/          # Sensor data collectors
+│       ├── Models/              # Data models
+│       ├── Services/            # Storage and upload services
+│       └── Enums/               # Enums and types
+├── samples/
+│   └── MauiSensorKit.SampleApp/ # Sample application
+└── .github/workflows/           # CI/CD automation
+```
+
+## CI/CD
+
+This project uses GitHub Actions for automated builds and publishing:
+
+- **Build**: Triggered on every push and pull request
+- **Publish**: Automatically publishes NuGet package when a version tag (v*) is pushed
+- **Artifacts**: Build artifacts are stored for 30 days
+
+To publish a new version:
+
+```bash
+# Update version in src/MauiSensorKit/MauiSensorKit.csproj
+git add .
+git commit -m "Version bump"
+git tag -a v1.0.1 -m "Release v1.0.1"
+git push origin main --tags
 ```
 
 ## License

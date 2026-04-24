@@ -1,0 +1,121 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+*.ilk
+*.pdb
+*.lib
+*.ncb
+*.sdf
+*.opensdf
+*.unsuccessfulbuild
+
+# MAUI specific
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+dSYM/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+*.nuget.props
+*.nuget.targets
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+*.sln.docstates
+
+# Mono auto generated files
+mono_crash.*
+
+# MSTest test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# .NET Core
+global.json
+local.settings.json
+
+# Node.js (if any web assets)
+node_modules/
+npm-debug.log*
+
+# Xamarin/MAUI resource designer files
+Resource.designer.cs
+
+# MacCatalyst
+*.app/
+
+# iOS
+*.ipa
+*.dSYM/
+
+# Android
+*.apk
+*.aab
+obj/.cache/
+
+# Secrets and sensitive files
+*.keystore
+*.jks
+*.mobileprovision
+GoogleService-Info.plist
+google-services.json
+secrets.json
+appsettings.Development.json
+appsettings.Local.json
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Coverage results
+coverage/
+*.coverage
+*.coveragexml
+coverage.json
+coverage.xml
+
+# Local tool manifests
+.tool-versions
