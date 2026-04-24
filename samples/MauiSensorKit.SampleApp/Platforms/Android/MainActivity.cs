@@ -2,6 +2,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using Microsoft.Maui.ApplicationModel;
 using MauiSensorKit;
 using MauiSensorKit.SampleApp.Views;
 
@@ -15,6 +16,7 @@ public class MainActivity : MauiAppCompatActivity
         base.OnCreate(savedInstanceState);
 
         // Handle NFC intent if started via NFC tag
+        // Delay to ensure MAUI is initialized
         HandleNfcIntent(Intent);
     }
 
@@ -28,8 +30,21 @@ public class MainActivity : MauiAppCompatActivity
     {
         if (intent == null) return;
 
-        // Pass NFC intent to the NFC collector
-        var nfcCollector = MauiApplication.Current?.Services?.GetService<NfcCollector>();
-        nfcCollector?.HandleTagDiscovered(intent);
+        try
+        {
+            // Pass NFC intent to the NFC collector
+            // Use IPlatformApplication.Current.Services instead of obsolete MauiApplication.Current.Services
+            var app = IPlatformApplication.Current;
+            if (app?.Services != null)
+            {
+                var nfcCollector = app.Services.GetService<NfcCollector>();
+                nfcCollector?.HandleTagDiscovered(intent);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't crash if NFC handling fails
+            System.Diagnostics.Debug.WriteLine($"Error handling NFC intent: {ex.Message}");
+        }
     }
 }

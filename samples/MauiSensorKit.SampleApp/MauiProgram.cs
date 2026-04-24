@@ -54,11 +54,8 @@ public static class MauiProgram
                     upload.MaxRetryAttempts = 3;
                     upload.UploadRetryInterval = TimeSpan.FromMinutes(1);
                 })
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
+;
+        // Note: Using default MAUI fonts. Add custom fonts to Resources/Fonts and register them here if needed.
 
 #if DEBUG
         builder.Logging.AddDebug();
