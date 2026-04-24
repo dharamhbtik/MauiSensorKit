@@ -2455,6 +2455,103 @@
             Returns a formatted string representation of the reading.
             </summary>
         </member>
+        <member name="T:MauiSensorKit.FirebaseAnalyticsService">
+            <summary>
+            Service for tracking analytics events via Firebase Analytics.
+            This service gracefully handles cases where Firebase is not configured (no google-services.json).
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseAnalyticsService.#ctor(Microsoft.Extensions.Logging.ILogger{MauiSensorKit.FirebaseAnalyticsService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MauiSensorKit.FirebaseAnalyticsService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:MauiSensorKit.FirebaseAnalyticsService.IsAvailable">
+            <summary>
+            Gets a value indicating whether Firebase Analytics is available and initialized.
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseAnalyticsService.TryInitialize">
+            <summary>
+            Attempts to initialize Firebase Analytics.
+            If google-services.json is not present, Firebase will not be initialized but the app will continue to work.
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseAnalyticsService.LogEvent(System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Logs an event to Firebase Analytics if available.
+            </summary>
+            <param name="eventName">The event name.</param>
+            <param name="parameters">Optional event parameters.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseAnalyticsService.SetUserProperty(System.String,System.String)">
+            <summary>
+            Sets a user property in Firebase Analytics if available.
+            </summary>
+            <param name="name">The property name.</param>
+            <param name="value">The property value.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseAnalyticsService.SetUserId(System.String)">
+            <summary>
+            Sets the user ID in Firebase Analytics if available.
+            </summary>
+            <param name="userId">The user ID.</param>
+        </member>
+        <member name="T:MauiSensorKit.FirebaseCrashlyticsService">
+            <summary>
+            Service for crash reporting via Firebase Crashlytics.
+            This service gracefully handles cases where Firebase is not configured (no google-services.json).
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.#ctor(Microsoft.Extensions.Logging.ILogger{MauiSensorKit.FirebaseCrashlyticsService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MauiSensorKit.FirebaseCrashlyticsService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="P:MauiSensorKit.FirebaseCrashlyticsService.IsAvailable">
+            <summary>
+            Gets a value indicating whether Firebase Crashlytics is available and initialized.
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.TryInitialize">
+            <summary>
+            Attempts to initialize Firebase Crashlytics.
+            If google-services.json is not present, Firebase will not be initialized but the app will continue to work.
+            </summary>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.RecordException(System.Exception,System.String)">
+            <summary>
+            Records an exception in Firebase Crashlytics if available.
+            </summary>
+            <param name="exception">The exception to record.</param>
+            <param name="context">Optional context information.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.Log(System.String)">
+            <summary>
+            Logs a message to Firebase Crashlytics if available.
+            </summary>
+            <param name="message">The message to log.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.SetCustomKey(System.String,System.String)">
+            <summary>
+            Sets a custom key-value pair in Firebase Crashlytics if available.
+            </summary>
+            <param name="key">The custom key.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.SetUserId(System.String)">
+            <summary>
+            Sets the user ID in Firebase Crashlytics if available.
+            </summary>
+            <param name="userId">The user ID.</param>
+        </member>
+        <member name="M:MauiSensorKit.FirebaseCrashlyticsService.ForceCrash">
+            <summary>
+            Forces a crash test (for debugging purposes only).
+            </summary>
+        </member>
         <member name="T:MauiSensorKit.ILocalStorageService">
             <summary>
             Service interface for local storage of sensor data batches.

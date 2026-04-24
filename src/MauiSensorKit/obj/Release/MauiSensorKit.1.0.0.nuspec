@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dharamhbtik/MauiSensorKit</projectUrl>
     <description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</description>
     <tags>maui sensors accelerometer gps gyroscope magnetometer barometer nfc uwb telemetry iot mobile</tags>
-    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="aebf2725b96481955f139b7b5a9225553460683f" />
+    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="a7a039e6b13ec1f5cfc897cc062a3bad08e0338d" />
     <dependencies>
       <group targetFramework="net10.0-android36.0">
         <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
@@ -48,6 +48,7 @@
     <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.xml" target="lib/net10.0-ios26.0/MauiSensorKit.xml" />
     <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-maccatalyst/MauiSensorKit.dll" target="lib/net10.0-maccatalyst26.0/MauiSensorKit.dll" />
     <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-maccatalyst/MauiSensorKit.xml" target="lib/net10.0-maccatalyst26.0/MauiSensorKit.xml" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-android/MauiSensorKit.aar" target="lib/net10.0-android36.0/MauiSensorKit.aar" />
     <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/README.md" target="/README.md" />
   </files>
 </package>

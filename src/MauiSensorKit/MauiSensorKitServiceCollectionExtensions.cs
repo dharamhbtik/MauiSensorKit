@@ -83,7 +83,7 @@ public static class MauiSensorKitServiceCollectionExtensions
         // 4. Register services
         builder.Services.TryAddSingleton<ILocalStorageService, LocalStorageService>();
         builder.Services.AddHttpClient<UploadService>();
-        builder.Services.TryAddSingleton<IUploadService, IUploadService>(sp => sp.GetRequiredService<UploadService>());
+        builder.Services.TryAddSingleton<IUploadService>(sp => sp.GetRequiredService<UploadService>());
         builder.Services.TryAddSingleton<ISensorCollectionService, SensorCollectionService>();
         builder.Services.AddHostedService<UploadBackgroundService>();
 

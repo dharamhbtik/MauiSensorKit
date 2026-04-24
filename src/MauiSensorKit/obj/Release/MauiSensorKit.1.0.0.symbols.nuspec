@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dharamhbtik/MauiSensorKit</projectUrl>
     <description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</description>
     <tags>maui sensors accelerometer gps gyroscope magnetometer barometer nfc uwb telemetry iot mobile</tags>
-    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="aebf2725b96481955f139b7b5a9225553460683f" />
+    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="a7a039e6b13ec1f5cfc897cc062a3bad08e0338d" />
     <dependencies>
       <group targetFramework="net10.0-android36.0">
         <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
