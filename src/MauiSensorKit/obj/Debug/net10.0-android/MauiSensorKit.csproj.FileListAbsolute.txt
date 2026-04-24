@@ -1,7 +1,6 @@
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.aar
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.dll
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.pdb
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.xml
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.MauiSensorKit.apk
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.MauiSensorKit.aab
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.MauiSensorKit-Signed.aab
@@ -78,7 +77,6 @@
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/lp/229/jl/files.cache
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/lp/247/jl/files.cache
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/lp/258/jl/files.cache
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/R.txt
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/_Microsoft.Android.Resource.Designer.dll
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/R.cs.flag
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.aar.cache
@@ -88,14 +86,16 @@
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.csproj.CoreCompileInputs.cache
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.dll
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/refint/MauiSensorKit.dll
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.xml
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.pdb
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/ref/MauiSensorKit.dll
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/android/bin/MauiSensorKit.MauiSensorKit.apk
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/android/bin/base.zip
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/android/bin/MauiSensorKit.MauiSensorKit.aab
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/android/bin/MauiSensorKit.MauiSensorKit.apks
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/R.txt
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/uploadflags.txt
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Debug/net10.0-android/MauiSensorKit.xml
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/MauiSensorKit.xml
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/stamp/_CleanIntermediateIfNeeded.stamp
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/stamp/_ConvertResourcesCases.stamp
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Debug/net10.0-android/stamp/_ResolveLibraryProjectImports.stamp
