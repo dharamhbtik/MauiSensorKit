@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             x:Class="MauiSensorKit.SampleApp.Views.DashboardPage"
+             Title="Sensor Dashboard">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                BackgroundColor="{StaticResource Primary}"
+                Padding="20,15">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="0,0,20,20" />
+            </Border.StrokeShape>
+
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Sensor Dashboard"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="White" />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0"
+                           Text="{Binding SessionId, StringFormat='Session: {0}'}"
+                           FontSize="12"
+                           TextColor="White"
+                           IsVisible="{Binding IsRecording}" />
+                    <Label Grid.Column="1"
+                           Text="{Binding Elapsed, StringFormat='{}{0:hh\\:mm\\:ss}'}"
+                           FontSize="14"
+                           TextColor="White"
+                           IsVisible="{Binding IsRecording}" />
+                </Grid>
+
+                <Button Text="{Binding IsRecording, Converter={StaticResource BoolToRecordButtonTextConverter}}"
+                        Command="{Binding StartCommand}"
+                        IsVisible="{Binding CanStart}"
+                        BackgroundColor="White"
+                        TextColor="{StaticResource Primary}"
+                        FontAttributes="Bold"
+                        CornerRadius="25"
+                        HeightRequest="50" />
+
+                <Button Text="Stop Recording"
+                        Command="{Binding StopCommand}"
+                        IsVisible="{Binding CanStop}"
+                        BackgroundColor="#FF6B6B"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="25"
+                        HeightRequest="50" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Live Readings -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding LiveReadings}"
+                        Margin="10">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="15"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}"
+                            StrokeThickness="1"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                            <!-- Icon -->
+                            <Image Grid.Row="0"
+                                   Grid.Column="0"
+                                   Source="{Binding Icon}"
+                                   WidthRequest="28"
+                                   HeightRequest="28"
+                                   Aspect="AspectFit"
+                                   Margin="0,0,10,0" />
+
+                            <!-- Name -->
+                            <Label Grid.Row="0"
+                                   Grid.Column="1"
+                                   Text="{Binding Name}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center" />
+
+                            <!-- Value -->
+                            <Label Grid.Row="1"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="2"
+                                   Text="{Binding FormattedValue}"
+                                   FontSize="14"
+                                   FontFamily="Consolas"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource Gray300}}" />
+
+                            <!-- Footer info -->
+                            <Grid Grid.Row="2"
+                                  Grid.Column="0"
+                                  Grid.ColumnSpan="2"
+                                  ColumnDefinitions="*,Auto"
+                                  Margin="0,5,0,0">
+                                <Label Grid.Column="0"
+                                       Text="{Binding ReadingCount, StringFormat='{0} readings'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray500}}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding LastUpdated, StringFormat='{}{0:HH:mm:ss}'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray500}}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
+                    <Label Text="No sensors enabled"
+                           FontSize="18"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                    <Label Text="Go to Configure Sensors to select which sensors to record."
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray500}}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+        <!-- Footer Stats -->
+        <Border Grid.Row="2"
+                Padding="15"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                StrokeThickness="0">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="{Binding StorageSizeFormatted, StringFormat='Storage: {0}'}"
+                           FontSize="12" />
+                    <Label Text="{Binding PendingBatchCount, StringFormat='Pending Upload: {0} batches'}"
+                           FontSize="12" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1"
+                        Text="Force Upload"
+                        Command="{Binding ForceUploadCommand}"
+                        FontSize="12"
+                        Padding="10,5"
+                        Margin="0,0,10,0" />
+
+                <Button Grid.Column="2"
+                        Text="Configure"
+                        Clicked="OnConfigureClicked"
+                        FontSize="12"
+                        Padding="10,5" />
+            </Grid>
+        </Border>
+    </Grid>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <local:BoolToRecordButtonTextConverter x:Key="BoolToRecordButtonTextConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+</ContentPage>

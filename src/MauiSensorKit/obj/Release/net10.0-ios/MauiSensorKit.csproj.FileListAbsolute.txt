@@ -1,0 +1,7 @@
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/_ProcessedBundleResourcesPath.items
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/_ProcessedContentPath.items
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.csproj.AssemblyReference.cache
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.GeneratedMSBuildEditorConfig.editorconfig
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.AssemblyInfoInputs.cache
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.AssemblyInfo.cs
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.csproj.CoreCompileInputs.cache

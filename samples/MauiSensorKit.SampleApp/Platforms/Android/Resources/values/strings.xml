@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SensorKit Demo</string>
+    <string name="channel_name">Sensor Collection</string>
+    <string name="channel_description">Background sensor data collection service</string>
+</resources>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             x:Class="MauiSensorKit.SampleApp.Views.SensorSelectionPage"
+             Title="Configure Sensors">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Enable All" Command="{Binding EnableAllCommand}" />
+        <ToolbarItem Text="Disable All" Command="{Binding DisableAllCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Padding="20,10" Spacing="5">
+            <Label Text="Select Sensors to Record"
+                   FontSize="24"
+                   FontAttributes="Bold" />
+            <Label Text="Choose which sensors to enable for data collection."
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+        </VerticalStackLayout>
+
+        <!-- Sensor List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding GroupedSensors}"
+                        IsGrouped="True">
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray800}}"
+                            Padding="15,8"
+                            Margin="10,5">
+                        <Label Text="{Binding Name}"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="15,10"
+                            Margin="10,2"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}"
+                            StrokeThickness="1">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="15">
+                            <!-- Icon -->
+                            <Image Grid.Column="0"
+                                   Source="{Binding Icon}"
+                                   WidthRequest="32"
+                                   HeightRequest="32"
+                                   Aspect="AspectFit" />
+
+                            <!-- Info -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding Name}"
+                                       FontSize="16"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding Description}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                                <Label Text="{Binding AvailabilityLabel}"
+                                       FontSize="11"
+                                       TextColor="{Binding AvailabilityColor}"
+                                       FontAttributes="Italic" />
+                            </VerticalStackLayout>
+
+                            <!-- Toggle -->
+                            <Switch Grid.Column="2"
+                                    IsToggled="{Binding IsEnabled, Mode=TwoWay}"
+                                    IsEnabled="{Binding IsAvailable}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Footer -->
+        <Button Grid.Row="2"
+                Text="Save &amp; Continue"
+                Command="{Binding SaveSelectionCommand}"
+                Margin="20"
+                Padding="15"
+                FontSize="16"
+                BackgroundColor="{StaticResource Primary}" />
+    </Grid>
+
+</ContentPage>

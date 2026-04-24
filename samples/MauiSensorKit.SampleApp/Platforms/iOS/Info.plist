@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identity -->
+    <key>CFBundleDisplayName</key>
+    <string>SensorKit Demo</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.mauisensorkit.sampleapp</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    
+    <!-- Location Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Used to record GPS location sensor data</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Used for background sensor recording</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Used for background sensor recording</string>
+    
+    <!-- Motion Sensors -->
+    <key>NSMotionUsageDescription</key>
+    <string>Used to access accelerometer, gyroscope, and motion sensors</string>
+    
+    <!-- Microphone -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Used to measure ambient sound levels only (no audio recording)</string>
+    
+    <!-- NFC -->
+    <key>NFCReaderUsageDescription</key>
+    <string>Used to detect nearby NFC tags</string>
+    
+    <!-- Required device capabilities -->
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>armv7</string>
+    </array>
+    
+    <!-- Supported interface orientations -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <!-- Background modes (if needed for background sensor collection) -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>processing</string>
+    </array>
+    
+    <!-- NSCameraUsageDescription - not used but included as placeholder -->
+    <key>NSCameraUsageDescription</key>
+    <string>Not used by this app</string>
+    
+    <!-- Minimum iOS version -->
+    <key>MinimumOSVersion</key>
+    <string>14.0</string>
+</dict>
+</plist>
