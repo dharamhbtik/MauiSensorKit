@@ -4,6 +4,8 @@ using Android.Content;
 using Android.OS;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>

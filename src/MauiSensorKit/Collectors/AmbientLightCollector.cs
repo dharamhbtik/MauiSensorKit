@@ -7,6 +7,8 @@ using Android.Runtime;
 using UIKit;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -76,7 +78,7 @@ public sealed class AmbientLightCollector : BaseSensorCollector<AmbientLightColl
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _lightSensor = _sensorManager?.GetDefaultSensor(SensorType.Light);
+            _lightSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Light);
 
             if (_lightSensor == null)
             {

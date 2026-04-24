@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -461,10 +463,20 @@ public sealed class SensorAvailabilityChecker
                 return Task.FromResult(SensorAvailabilityStatus.Unavailable);
             }
 
+            // Use reflection to check UWB since Android.Uwb isn't in standard MAUI bindings
             var context = global::Android.App.Application.Context;
-            var uwbManager = context.GetSystemService(global::Android.Content.Context.UwbService) as global::Android.Uwb.UwbManager;
-            var isAvailable = uwbManager?.IsUwbEnabled ?? false;
-            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            var uwbService = context.GetSystemService("uwb");
+            if (uwbService != null)
+            {
+                var uwbManagerType = uwbService.GetType();
+                var isEnabledProp = uwbManagerType.GetProperty("IsUwbEnabled");
+                if (isEnabledProp != null)
+                {
+                    var isEnabled = (bool?)isEnabledProp.GetValue(uwbService) ?? false;
+                    return Task.FromResult(isEnabled ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+                }
+            }
+            return Task.FromResult(SensorAvailabilityStatus.Unavailable);
         }
         catch
         {

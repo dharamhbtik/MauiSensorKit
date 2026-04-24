@@ -8,6 +8,8 @@ using UIKit;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -47,7 +49,7 @@ public sealed class ProximitySensorCollector : BaseSensorCollector<ProximitySens
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.Proximity);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Proximity);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -79,7 +81,7 @@ public sealed class ProximitySensorCollector : BaseSensorCollector<ProximitySens
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _proximitySensor = _sensorManager?.GetDefaultSensor(SensorType.Proximity);
+            _proximitySensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Proximity);
 
             if (_proximitySensor == null)
             {

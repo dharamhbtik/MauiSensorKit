@@ -2,6 +2,8 @@
 using Android.Hardware;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -37,7 +39,7 @@ public sealed class HumidityCollector : BaseSensorCollector<HumidityCollector>
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.RelativeHumidity);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.RelativeHumidity);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -67,7 +69,7 @@ public sealed class HumidityCollector : BaseSensorCollector<HumidityCollector>
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _humiditySensor = _sensorManager?.GetDefaultSensor(SensorType.RelativeHumidity);
+            _humiditySensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.RelativeHumidity);
 
             if (_humiditySensor == null)
             {

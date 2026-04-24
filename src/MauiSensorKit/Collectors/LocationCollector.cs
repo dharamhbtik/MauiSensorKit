@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -26,8 +28,17 @@ public sealed class LocationCollector : BaseSensorCollector<LocationCollector>
     {
         try
         {
-            var isEnabled = await Geolocation.IsEnabledAsync();
-            return isEnabled;
+            // Try to get last known location to check if location services are available
+            var location = await Geolocation.GetLastKnownLocationAsync();
+            return true;
+        }
+        catch (FeatureNotEnabledException)
+        {
+            return false;
+        }
+        catch (PermissionException)
+        {
+            return true; // Permission can be requested later
         }
         catch (Exception ex)
         {
@@ -50,8 +61,12 @@ public sealed class LocationCollector : BaseSensorCollector<LocationCollector>
             _sessionId = sessionId;
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            var isEnabled = await Geolocation.IsEnabledAsync();
-            if (!isEnabled)
+            // Try to get a quick location to verify services are enabled
+            try
+            {
+                var testLocation = await Geolocation.GetLastKnownLocationAsync();
+            }
+            catch (FeatureNotEnabledException)
             {
                 Logger.LogWarning("Location services are not enabled on this device");
                 return;

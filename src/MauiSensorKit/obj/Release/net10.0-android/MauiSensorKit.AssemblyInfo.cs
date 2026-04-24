@@ -12,17 +12,17 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyMetadata("IsTrimmable", "True")]
 [assembly: System.Reflection.AssemblyMetadata("IsAotCompatible", "True")]
-[assembly: System.Reflection.AssemblyCompanyAttribute("MauiSensorKit")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("ZenithCode Studio")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile senso" +
     "r data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, m" +
     "icrophone, NFC, UWB, and more."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e94cea5598229196bb869712edc0d8eed0efd7c2")]
 [assembly: System.Reflection.AssemblyProductAttribute("MauiSensorKit")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MauiSensorKit")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyMetadataAttribute("RepositoryUrl", "https://github.com/mauisensorkit/MauiSensorKit")]
+[assembly: System.Reflection.AssemblyMetadataAttribute("RepositoryUrl", "https://github.com/dharamhbtik/MauiSensorKit")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Android36.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Android21.0")]
 

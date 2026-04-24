@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -157,7 +159,7 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
         return source switch
         {
             Microsoft.Maui.Devices.BatteryPowerSource.Battery => BatteryPowerSource.Battery,
-            Microsoft.Maui.Devices.BatteryPowerSource.Ac => BatteryPowerSource.Ac,
+            Microsoft.Maui.Devices.BatteryPowerSource.AC => BatteryPowerSource.Ac,
             Microsoft.Maui.Devices.BatteryPowerSource.Usb => BatteryPowerSource.Usb,
             Microsoft.Maui.Devices.BatteryPowerSource.Wireless => BatteryPowerSource.Wireless,
             _ => BatteryPowerSource.Unknown

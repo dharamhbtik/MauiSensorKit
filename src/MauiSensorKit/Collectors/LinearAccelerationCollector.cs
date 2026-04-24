@@ -8,6 +8,8 @@ using CoreMotion;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -47,7 +49,7 @@ public sealed class LinearAccelerationCollector : BaseSensorCollector<LinearAcce
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.LinearAcceleration);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.LinearAcceleration);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -78,7 +80,7 @@ public sealed class LinearAccelerationCollector : BaseSensorCollector<LinearAcce
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _linearAccelSensor = _sensorManager?.GetDefaultSensor(SensorType.LinearAcceleration);
+            _linearAccelSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.LinearAcceleration);
 
             if (_linearAccelSensor == null)
             {

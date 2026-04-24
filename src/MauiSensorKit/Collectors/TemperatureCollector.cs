@@ -2,6 +2,8 @@
 using Android.Hardware;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -37,7 +39,7 @@ public sealed class TemperatureCollector : BaseSensorCollector<TemperatureCollec
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.AmbientTemperature);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.AmbientTemperature);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -67,7 +69,7 @@ public sealed class TemperatureCollector : BaseSensorCollector<TemperatureCollec
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _tempSensor = _sensorManager?.GetDefaultSensor(SensorType.AmbientTemperature);
+            _tempSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.AmbientTemperature);
 
             if (_tempSensor == null)
             {

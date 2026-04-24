@@ -8,6 +8,8 @@ using CoreMotion;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -48,7 +50,7 @@ public sealed class StepCounterCollector : BaseSensorCollector<StepCounterCollec
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.StepCounter);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.StepCounter);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -80,7 +82,7 @@ public sealed class StepCounterCollector : BaseSensorCollector<StepCounterCollec
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _stepCounterSensor = _sensorManager?.GetDefaultSensor(SensorType.StepCounter);
+            _stepCounterSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.StepCounter);
 
             if (_stepCounterSensor == null)
             {

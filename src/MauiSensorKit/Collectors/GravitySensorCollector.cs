@@ -8,6 +8,8 @@ using CoreMotion;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -48,7 +50,7 @@ public sealed class GravitySensorCollector : BaseSensorCollector<GravitySensorCo
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _gravitySensor = _sensorManager?.GetDefaultSensor(SensorType.Gravity);
+            _gravitySensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Gravity);
             return Task.FromResult(_gravitySensor != null);
         }
         catch (Exception ex)
@@ -81,7 +83,7 @@ public sealed class GravitySensorCollector : BaseSensorCollector<GravitySensorCo
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _gravitySensor = _sensorManager?.GetDefaultSensor(SensorType.Gravity);
+            _gravitySensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Gravity);
 
             if (_gravitySensor == null)
             {

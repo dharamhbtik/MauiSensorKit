@@ -7,6 +7,8 @@ using AVFoundation;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>

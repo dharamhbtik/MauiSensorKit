@@ -17,13 +17,13 @@
     <!-- NuGet Package Metadata -->
     <PackageId>MauiSensorKit</PackageId>
     <Version>1.0.0</Version>
-    <Authors>MauiSensorKit Contributors</Authors>
-    <Company>MauiSensorKit</Company>
+    <Authors>Dharmendra Kumar</Authors>
+    <Company>ZenithCode Studio</Company>
     <Description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</Description>
     <PackageTags>maui;sensors;accelerometer;gps;gyroscope;magnetometer;barometer;nfc;uwb;telemetry;iot;mobile</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/mauisensorkit/MauiSensorKit</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/mauisensorkit/MauiSensorKit</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/dharamhbtik/MauiSensorKit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dharamhbtik/MauiSensorKit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -42,7 +42,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 

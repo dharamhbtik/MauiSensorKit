@@ -4,6 +4,8 @@ using Android.Content;
 using Android.OS;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -165,8 +167,8 @@ public sealed class HallSensorCollector : BaseSensorCollector<HallSensorCollecto
 
             try
             {
-                int dockState = intent.GetIntExtra(Intent.ExtraDockState, (int)DockState.Undocked);
-                bool isCoverClosed = dockState != (int)DockState.Undocked;
+                int dockState = intent.GetIntExtra(Intent.ExtraDockState, (int)global::Android.App.Intent.DockState.Undocked);
+                bool isCoverClosed = dockState != (int)global::Android.App.Intent.DockState.Undocked;
 
                 var reading = new HallSensorReading
                 {

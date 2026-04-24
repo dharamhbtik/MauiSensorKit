@@ -64,7 +64,7 @@
               "target": "Package",
               "version": "[8.4.2, )"
             },
-            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+            "Microsoft.Extensions.Http": {
               "target": "Package",
               "version": "[9.0.0, )"
             },
@@ -407,7 +407,7 @@
               "target": "Package",
               "version": "[8.4.2, )"
             },
-            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+            "Microsoft.Extensions.Http": {
               "target": "Package",
               "version": "[9.0.0, )"
             },
@@ -754,7 +754,7 @@
               "target": "Package",
               "version": "[8.4.2, )"
             },
-            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+            "Microsoft.Extensions.Http": {
               "target": "Package",
               "version": "[9.0.0, )"
             },

@@ -6,6 +6,8 @@ using Android.Nfc.Tech;
 using Java.Nio.Charset;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>

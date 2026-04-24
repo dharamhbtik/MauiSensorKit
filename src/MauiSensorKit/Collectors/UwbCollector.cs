@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Logging;
+
 #if ANDROID
-using Android.Uwb;
-using Android.Runtime;
 using Android.OS;
 #endif
 
@@ -19,11 +19,6 @@ namespace MauiSensorKit;
 public sealed class UwbCollector : BaseSensorCollector<UwbCollector>
 {
     private string? _sessionId;
-
-#if ANDROID
-    private UwbManager? _uwbManager;
-    private RangingSession? _rangingSession;
-#endif
 
 #if IOS
     private NISession? _niSession;
@@ -46,6 +41,7 @@ public sealed class UwbCollector : BaseSensorCollector<UwbCollector>
     public override Task<bool> IsSupportedAsync()
     {
 #if ANDROID
+        // Android UWB APIs require reflection as they're not in standard MAUI bindings
         try
         {
             if (Build.VERSION.SdkInt < BuildVersionCodes.S)
@@ -54,9 +50,21 @@ public sealed class UwbCollector : BaseSensorCollector<UwbCollector>
                 return Task.FromResult(false);
             }
 
-            _uwbManager = global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.UwbService) as UwbManager;
-            var isAvailable = _uwbManager?.IsUwbEnabled ?? false;
-            return Task.FromResult(isAvailable);
+            // Try to get UWB service via reflection
+            var context = global::Android.App.Application.Context;
+            var uwbService = context.GetSystemService("uwb");
+            if (uwbService != null)
+            {
+                // Check if UWB is enabled via reflection
+                var uwbManagerType = uwbService.GetType();
+                var isEnabledProp = uwbManagerType.GetProperty("IsUwbEnabled");
+                if (isEnabledProp != null)
+                {
+                    var isEnabled = (bool?)isEnabledProp.GetValue(uwbService) ?? false;
+                    return Task.FromResult(isEnabled);
+                }
+            }
+            return Task.FromResult(false);
         }
         catch (Exception ex)
         {
@@ -91,22 +99,7 @@ public sealed class UwbCollector : BaseSensorCollector<UwbCollector>
             _sessionId = sessionId;
 
 #if ANDROID
-            if (Build.VERSION.SdkInt < BuildVersionCodes.S)
-            {
-                Logger.LogWarning("UWB requires Android 12+ (API 31+)");
-                return Task.CompletedTask;
-            }
-
-            _uwbManager = global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.UwbService) as UwbManager;
-            if (_uwbManager?.IsUwbEnabled != true)
-            {
-                Logger.LogWarning("UWB is not available or enabled on this Android device");
-                return Task.CompletedTask;
-            }
-
-            // Note: Full UWB implementation requires pairing and configuration
-            // This is a simplified implementation showing the concept
-            Logger.LogInformation("UWB collector started. Full UWB ranging requires paired device configuration.");
+            Logger.LogInformation("UWB on Android requires platform-specific implementation with reflection. Collector started in passive mode.");
 
 #elif IOS
             if (!NISession.IsSupported)
@@ -156,10 +149,7 @@ public sealed class UwbCollector : BaseSensorCollector<UwbCollector>
 
         try
         {
-#if ANDROID
-            _rangingSession?.Close();
-            _rangingSession = null;
-#elif IOS
+#if IOS
             _niSession?.Invalidate();
             _niSession = null;
 #endif

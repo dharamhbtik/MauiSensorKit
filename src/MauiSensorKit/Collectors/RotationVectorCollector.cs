@@ -8,6 +8,8 @@ using CoreMotion;
 using Foundation;
 #endif
 
+using Microsoft.Extensions.Logging;
+
 namespace MauiSensorKit;
 
 /// <summary>
@@ -47,7 +49,7 @@ public sealed class RotationVectorCollector : BaseSensorCollector<RotationVector
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.RotationVector);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.RotationVector);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
@@ -78,7 +80,7 @@ public sealed class RotationVectorCollector : BaseSensorCollector<RotationVector
 
 #if ANDROID
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _rotationVectorSensor = _sensorManager?.GetDefaultSensor(SensorType.RotationVector);
+            _rotationVectorSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.RotationVector);
 
             if (_rotationVectorSensor == null)
             {
