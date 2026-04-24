@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <!-- Target frameworks - Windows only when on Windows or explicitly enabled -->
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    
+    <!-- Allow Windows targeting from non-Windows platforms if explicitly needed -->
+    <EnableWindowsTargeting Condition="'$(OS)' != 'Windows_NT'">true</EnableWindowsTargeting>
     
     <OutputType>Exe</OutputType>
     <RootNamespace>MauiSensorKit.SampleApp</RootNamespace>
@@ -21,21 +26,6 @@
     <!-- Versions -->
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
-    
-    <!-- MauiSplashScreen -->
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
-    
-    <!-- MauiIcon -->
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
-    
-    <!-- MauiFont -->
-    <MauiFont Include="Resources\Fonts\*" />
-    
-    <!-- MauiImage -->
-    <MauiImage Include="Resources\Images\*" />
-    
-    <!-- MauiAssets -->
-    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,16 +38,16 @@
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
 
-    <!-- Fonts -->
-    <MauiFont Include="Resources\Fonts\OpenSans-Regular.ttf" />
-    <MauiFont Include="Resources\Fonts\OpenSans-Semibold.ttf" />
+    <!-- Fonts - Using MAUI built-in fonts -->
+    <!-- <MauiFont Include="Resources\Fonts\OpenSans-Regular.ttf" /> -->
+    <!-- <MauiFont Include="Resources\Fonts\OpenSans-Semibold.ttf" /> -->
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0-preview.1.25080.5" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="9.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 
   <ItemGroup>

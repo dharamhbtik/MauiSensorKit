@@ -1,0 +1,130 @@
+name: Build Sample App APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'samples/**'
+      - 'src/**'
+      - '.github/workflows/build-sample-apk.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'samples/**'
+      - 'src/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build-android:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install MAUI Workloads
+        run: |
+          dotnet workload install maui
+          dotnet workload install android
+          dotnet workload install ios
+          dotnet workload install maccatalyst
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj
+          dotnet restore src/MauiSensorKit/MauiSensorKit.csproj
+
+      - name: Build Library
+        run: dotnet build src/MauiSensorKit/MauiSensorKit.csproj --configuration Release
+
+      - name: Build Android App (Debug)
+        run: |
+          dotnet build samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj \
+            --framework net10.0-android \
+            --configuration Debug \
+            --no-restore
+
+      - name: Build Android App (Release)
+        run: |
+          dotnet publish samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj \
+            --framework net10.0-android \
+            --configuration Release \
+            --no-restore \
+            -p:AndroidPackageFormat=apk \
+            -p:AndroidKeyStore=false \
+            -o ./artifacts
+
+      - name: List APK files
+        run: |
+          echo "=== Debug APK ==="
+          find samples/MauiSensorKit.SampleApp/bin -name "*.apk" -type f || echo "No debug APK found"
+          echo ""
+          echo "=== Release APK ==="
+          find ./artifacts -name "*.apk" -type f || echo "No release APK found"
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-app-debug-apk
+          path: samples/MauiSensorKit.SampleApp/bin/Debug/net10.0-android/**/*.apk
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-app-release-apk
+          path: ./artifacts/**/*.apk
+          if-no-files-found: warn
+          retention-days: 30
+
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install MAUI Workloads
+        run: |
+          dotnet workload install maui
+          dotnet workload install ios
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj
+          dotnet restore src/MauiSensorKit/MauiSensorKit.csproj
+
+      - name: Build Library
+        run: dotnet build src/MauiSensorKit/MauiSensorKit.csproj --configuration Release
+
+      - name: Build iOS App (Simulator)
+        run: |
+          dotnet build samples/MauiSensorKit.SampleApp/MauiSensorKit.SampleApp.csproj \
+            --framework net10.0-ios \
+            --configuration Debug \
+            --no-restore \
+            -p:RuntimeIdentifier=iossimulator-x64
+
+      - name: Upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-app-ios-simulator
+          path: samples/MauiSensorKit.SampleApp/bin/Debug/net10.0-ios/iossimulator-x64/**/*.app
+          if-no-files-found: warn
+          retention-days: 30

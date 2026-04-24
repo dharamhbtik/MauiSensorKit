@@ -78,15 +78,18 @@ public static class MauiProgram
 
 public class App : Application
 {
-    public App()
+    private readonly IServiceProvider _services;
+
+    public App(IServiceProvider services)
     {
-        MainPage = new AppShell();
+        _services = services;
+        MainPage = new AppShell(services);
     }
 }
 
 public class AppShell : Shell
 {
-    public AppShell()
+    public AppShell(IServiceProvider services)
     {
         Routing.RegisterRoute("sensorselection", typeof(SensorSelectionPage));
         Routing.RegisterRoute("dashboard", typeof(DashboardPage));
@@ -100,7 +103,7 @@ public class AppShell : Shell
                 new ShellContent
                 {
                     Title = "Configure",
-                    ContentTemplate = new DataTemplate(() => new SensorSelectionPage())
+                    ContentTemplate = new DataTemplate(() => services.GetRequiredService<SensorSelectionPage>())
                 }
             }
         });
@@ -114,7 +117,7 @@ public class AppShell : Shell
                 new ShellContent
                 {
                     Title = "Dashboard",
-                    ContentTemplate = new DataTemplate(() => new DashboardPage())
+                    ContentTemplate = new DataTemplate(() => services.GetRequiredService<DashboardPage>())
                 }
             }
         });
