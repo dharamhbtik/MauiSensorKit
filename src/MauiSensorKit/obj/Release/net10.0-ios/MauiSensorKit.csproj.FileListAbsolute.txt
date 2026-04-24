@@ -5,3 +5,11 @@
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.AssemblyInfoInputs.cache
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.AssemblyInfo.cs
 /Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.csproj.CoreCompileInputs.cache
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.dll
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.pdb
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.xml
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.dll
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/refint/MauiSensorKit.dll
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.xml
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/MauiSensorKit.pdb
+/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0-ios/ref/MauiSensorKit.dll

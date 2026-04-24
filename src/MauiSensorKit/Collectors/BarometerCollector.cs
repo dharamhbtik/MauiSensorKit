@@ -49,7 +49,7 @@ public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
         {
             _sessionId = sessionId;
             Barometer.Default.ReadingChanged += OnReadingChanged;
-            Barometer.Default.Start(Options.SlowSensorPollingInterval);
+            Barometer.Default.Start(Options.MotionSensorSpeed);
             IsRunning = true;
 
             Logger.LogInformation("Barometer collector started");

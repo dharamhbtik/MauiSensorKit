@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>MauiSensorKit</id>
+    <version>1.0.0</version>
+    <authors>Dharmendra Kumar</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/dharamhbtik/MauiSensorKit</projectUrl>
+    <description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</description>
+    <tags>maui sensors accelerometer gps gyroscope magnetometer barometer nfc uwb telemetry iot mobile</tags>
+    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="4cbe3120965c8cb5b398b125537c05451903d8cb" />
+    <dependencies>
+      <group targetFramework="net10.0-android36.0">
+        <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Http" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net10.0-ios26.0">
+        <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Http" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net10.0-maccatalyst26.0">
+        <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Http" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-android/MauiSensorKit.dll" target="lib/net10.0-android36.0/MauiSensorKit.dll" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-android/MauiSensorKit.xml" target="lib/net10.0-android36.0/MauiSensorKit.xml" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.dll" target="lib/net10.0-ios26.0/MauiSensorKit.dll" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-ios/MauiSensorKit.xml" target="lib/net10.0-ios26.0/MauiSensorKit.xml" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-maccatalyst/MauiSensorKit.dll" target="lib/net10.0-maccatalyst26.0/MauiSensorKit.dll" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/bin/Release/net10.0-maccatalyst/MauiSensorKit.xml" target="lib/net10.0-maccatalyst26.0/MauiSensorKit.xml" />
+    <file src="/Users/dkumar/CascadeProjects/MauiSensorKit/README.md" target="/README.md" />
+  </files>
+</package>

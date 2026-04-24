@@ -44,7 +44,7 @@ public sealed class AmbientLightCollector : BaseSensorCollector<AmbientLightColl
         try
         {
             _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(SensorType.Light);
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Light);
             return Task.FromResult(sensor != null);
         }
         catch (Exception ex)

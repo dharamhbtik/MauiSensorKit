@@ -58,8 +58,21 @@ public sealed class ProximitySensorCollector : BaseSensorCollector<ProximitySens
             return Task.FromResult(false);
         }
 #elif IOS
-        // iOS proximity monitoring is available on devices with proximity sensor
-        return Task.FromResult(UIDevice.CurrentDevice.ProximityMonitoringAvailable);
+        // iOS proximity monitoring - most iOS devices have proximity sensors
+        // We'll enable it temporarily to check availability
+        try
+        {
+            var device = UIDevice.CurrentDevice;
+            var originalState = device.ProximityMonitoringEnabled;
+            device.ProximityMonitoringEnabled = true;
+            bool available = device.ProximityMonitoringEnabled;
+            device.ProximityMonitoringEnabled = originalState;
+            return Task.FromResult(available);
+        }
+        catch
+        {
+            return Task.FromResult(false);
+        }
 #else
         Logger.LogWarning("Proximity sensor not supported on this platform");
         return Task.FromResult(false);
@@ -93,13 +106,13 @@ public sealed class ProximitySensorCollector : BaseSensorCollector<ProximitySens
             _sensorManager.RegisterListener(_listener, _proximitySensor, SensorDelay.Normal);
 
 #elif IOS
-            if (!UIDevice.CurrentDevice.ProximityMonitoringAvailable)
+            // Enable proximity monitoring - this will fail silently if not available
+            UIDevice.CurrentDevice.ProximityMonitoringEnabled = true;
+            if (!UIDevice.CurrentDevice.ProximityMonitoringEnabled)
             {
                 Logger.LogWarning("Proximity monitoring not available on this iOS device");
                 return Task.CompletedTask;
             }
-
-            UIDevice.CurrentDevice.ProximityMonitoringEnabled = true;
 
             _observer = UIDevice.Notifications.ObserveProximityStateDidChange((sender, e) =>
             {

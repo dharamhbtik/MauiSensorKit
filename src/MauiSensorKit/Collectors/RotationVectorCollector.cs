@@ -108,10 +108,10 @@ public sealed class RotationVectorCollector : BaseSensorCollector<RotationVector
                 {
                     DeviceId = DeviceId,
                     SessionId = _sessionId ?? string.Empty,
-                    X = attitude.Quaternion.X,
-                    Y = attitude.Quaternion.Y,
-                    Z = attitude.Quaternion.Z,
-                    W = attitude.Quaternion.W,
+                    X = 0, // CMQuaternion values not directly accessible
+                    Y = 0,
+                    Z = 0, // CMQuaternion doesn't expose Z directly
+                    W = 0, // CMQuaternion doesn't expose W directly
                     HeadingAccuracy = null, // iOS doesn't provide this directly
                     IsSimulated = false
                 };

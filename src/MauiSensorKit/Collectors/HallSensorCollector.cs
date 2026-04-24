@@ -167,8 +167,9 @@ public sealed class HallSensorCollector : BaseSensorCollector<HallSensorCollecto
 
             try
             {
-                int dockState = intent.GetIntExtra(Intent.ExtraDockState, (int)global::Android.App.Intent.DockState.Undocked);
-                bool isCoverClosed = dockState != (int)global::Android.App.Intent.DockState.Undocked;
+                // Use hardcoded value 0 for Undocked since DockState isn't directly available
+                int dockState = intent.GetIntExtra(Intent.ExtraDockState, 0);
+                bool isCoverClosed = dockState != 0;
 
                 var reading = new HallSensorReading
                 {

@@ -167,9 +167,7 @@ public sealed class MicrophoneCollector : BaseSensorCollector<MicrophoneCollecto
                 SampleRate = 44100,
                 NumberChannels = 1,
                 Format = AudioToolbox.AudioFormatType.LinearPCM,
-                LinearPcmBitDepth = 16,
-                LinearPcmFloatKey = false,
-                LinearPcmBigEndianKey = false
+                LinearPcmBitDepth = 16
             };
 
             _recorder = AVAudioRecorder.Create(_tempUrl, settings, out NSError? error);
