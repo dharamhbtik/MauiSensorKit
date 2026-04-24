@@ -21,7 +21,7 @@
     <ApplicationTitle>SensorKit Demo</ApplicationTitle>
     
     <!-- App Identifier -->
-    <ApplicationId>com.mauisensorkit.sampleapp</ApplicationId>
+    <ApplicationId>com.zenithcodestudio.sampleapp</ApplicationId>
     
     <!-- Versions -->
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
