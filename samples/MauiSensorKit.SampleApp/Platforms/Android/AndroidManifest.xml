@@ -54,7 +54,7 @@
         android:roundIcon="@mipmap/appicon_round"
         android:supportsRtl="true">
         
-        <activity android:name="mainactivity" 
+        <activity android:name="com.zenithcodestudio.sampleapp.MainActivity" 
                   android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
