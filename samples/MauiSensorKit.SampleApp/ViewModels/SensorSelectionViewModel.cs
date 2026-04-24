@@ -59,6 +59,26 @@ public partial class SensorToggleItem : ObservableObject
     public bool IsNotSupported => Availability == SensorAvailabilityStatus.NotSupported;
 
     /// <summary>
+    /// Gets whether the sensor needs permission.
+    /// </summary>
+    public bool NeedsPermission => Availability == SensorAvailabilityStatus.PermissionNeeded;
+
+    /// <summary>
+    /// Gets whether the sensor can be toggled (available or needs permission).
+    /// </summary>
+    public bool CanBeToggled => Availability != SensorAvailabilityStatus.NotSupported && Availability != SensorAvailabilityStatus.Unavailable;
+
+    /// <summary>
+    /// Gets the permission status label.
+    /// </summary>
+    public string PermissionLabel => NeedsPermission ? "⚠️ Permission Required" : string.Empty;
+
+    /// <summary>
+    /// Gets the required permissions for this sensor.
+    /// </summary>
+    public string RequiredPermissions => GetRequiredPermissions(Type);
+
+    /// <summary>
     /// Gets the availability label.
     /// </summary>
     public string AvailabilityLabel => Availability.GetLabel();
@@ -75,6 +95,18 @@ public partial class SensorToggleItem : ObservableObject
     public SensorToggleItem(SensorType type)
     {
         Type = type;
+    }
+
+    private static string GetRequiredPermissions(SensorType type)
+    {
+        return type switch
+        {
+            SensorType.Location => "Location (Fine/Coarse)",
+            SensorType.Microphone => "Microphone",
+            SensorType.Nfc => "NFC",
+            SensorType.StepCounter or SensorType.StepDetector => "Activity Recognition",
+            _ => "None"
+        };
     }
 }
 
@@ -110,6 +142,8 @@ public partial class SensorSelectionViewModel : ObservableObject
         SaveSelectionCommand = new AsyncRelayCommand(SaveSelectionAsync);
         EnableAllCommand = new RelayCommand(EnableAll);
         DisableAllCommand = new RelayCommand(DisableAll);
+        AutoSelectAvailableCommand = new AsyncRelayCommand(AutoSelectAvailableAsync);
+        RequestPermissionCommand = new AsyncRelayCommand<SensorToggleItem>(RequestPermissionAsync);
 
         // Initialize with all sensors
         InitializeSensors();
@@ -189,6 +223,36 @@ public partial class SensorSelectionViewModel : ObservableObject
     /// </summary>
     public IRelayCommand DisableAllCommand { get; }
 
+    /// <summary>
+    /// Command to auto select all available sensors.
+    /// </summary>
+    public IAsyncRelayCommand AutoSelectAvailableCommand { get; }
+
+    /// <summary>
+    /// Command to request permission for a sensor.
+    /// </summary>
+    public IAsyncRelayCommand<SensorToggleItem> RequestPermissionCommand { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether any sensors need permission.
+    /// </summary>
+    public bool HasSensorsNeedingPermission => Sensors.Any(s => s.NeedsPermission);
+
+    /// <summary>
+    /// Gets the count of available sensors.
+    /// </summary>
+    public int AvailableCount => Sensors.Count(s => s.Availability == SensorAvailabilityStatus.Available);
+
+    /// <summary>
+    /// Gets the count of sensors needing permission.
+    /// </summary>
+    public int PermissionNeededCount => Sensors.Count(s => s.NeedsPermission);
+
+    /// <summary>
+    /// Gets the status summary text.
+    /// </summary>
+    public string StatusSummary => $"Available: {AvailableCount} | Need Permission: {PermissionNeededCount} | Unavailable: {Sensors.Count(s => s.Availability == SensorAvailabilityStatus.Unavailable)}";
+
     private async Task LoadAvailabilityAsync()
     {
         try
@@ -200,15 +264,115 @@ public partial class SensorSelectionViewModel : ObservableObject
                 if (report.Statuses.TryGetValue(sensor.Type, out var status))
                 {
                     sensor.Availability = status;
+                    // Auto-select available sensors by default
+                    if (status == SensorAvailabilityStatus.Available && !sensor.IsEnabled)
+                    {
+                        sensor.IsEnabled = true;
+                    }
                 }
             }
 
             UpdateGroupedSensors();
+            OnPropertyChanged(nameof(HasSensorsNeedingPermission));
+            OnPropertyChanged(nameof(AvailableCount));
+            OnPropertyChanged(nameof(PermissionNeededCount));
+            OnPropertyChanged(nameof(StatusSummary));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading sensor availability");
         }
+    }
+
+    private async Task AutoSelectAvailableAsync()
+    {
+        try
+        {
+            foreach (var sensor in Sensors.Where(s => s.Availability == SensorAvailabilityStatus.Available))
+            {
+                sensor.IsEnabled = true;
+            }
+
+            _logger.LogInformation("Auto-selected all available sensors");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error auto-selecting sensors");
+        }
+    }
+
+    private async Task RequestPermissionAsync(SensorToggleItem? item)
+    {
+        if (item == null) return;
+
+        try
+        {
+            var permissionStatus = await RequestSensorPermissionAsync(item.Type);
+
+            if (permissionStatus == PermissionStatus.Granted)
+            {
+                // Re-check availability
+                var newStatus = await _availabilityChecker.CheckSensorAsync(item.Type);
+                item.Availability = newStatus;
+
+                if (newStatus == SensorAvailabilityStatus.Available)
+                {
+                    item.IsEnabled = true;
+                    await Shell.Current.DisplayAlert("Permission Granted", $"Permission granted for {item.Name}. Sensor is now available.", "OK");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Permission Check", $"Permission may have been granted, but {item.Name} is still not available.", "OK");
+                }
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Permission Denied", $"Permission was not granted for {item.Name}. Please enable it in device settings.", "OK");
+            }
+
+            OnPropertyChanged(nameof(HasSensorsNeedingPermission));
+            OnPropertyChanged(nameof(AvailableCount));
+            OnPropertyChanged(nameof(PermissionNeededCount));
+            OnPropertyChanged(nameof(StatusSummary));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error requesting permission for {Sensor}", item.Type);
+            await Shell.Current.DisplayAlert("Error", $"Failed to request permission: {ex.Message}", "OK");
+        }
+    }
+
+    private static async Task<PermissionStatus> RequestSensorPermissionAsync(SensorType sensorType)
+    {
+        return sensorType switch
+        {
+            SensorType.Location => await Permissions.RequestAsync<Permissions.LocationWhenInUse>(),
+            SensorType.Microphone => await Permissions.RequestAsync<Permissions.Microphone>(),
+            SensorType.StepCounter or SensorType.StepDetector => await CheckActivityPermissionAsync(),
+            _ => PermissionStatus.Unknown
+        };
+    }
+
+    private static async Task<PermissionStatus> CheckActivityPermissionAsync()
+    {
+        // Activity recognition permission varies by platform
+#if ANDROID
+        try
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.Sensors>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Sensors>();
+            }
+            return status;
+        }
+        catch
+        {
+            return PermissionStatus.Unknown;
+        }
+#else
+        return PermissionStatus.Granted; // iOS handles this automatically
+#endif
     }
 
     private async Task SaveSelectionAsync()

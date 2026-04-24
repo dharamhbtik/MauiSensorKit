@@ -6,11 +6,12 @@
              Title="Configure Sensors">
 
     <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Auto Select" Command="{Binding AutoSelectAvailableCommand}" />
         <ToolbarItem Text="Enable All" Command="{Binding EnableAllCommand}" />
         <ToolbarItem Text="Disable All" Command="{Binding DisableAllCommand}" />
     </ContentPage.ToolbarItems>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Padding="20,10" Spacing="5">
             <Label Text="Select Sensors to Record"
@@ -21,8 +22,29 @@
                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
         </VerticalStackLayout>
 
+        <!-- Status Summary -->
+        <Border Grid.Row="1"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                Padding="15,10"
+                Margin="10,5"
+                Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="8" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="5">
+                <Label Text="{Binding StatusSummary}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="Green = Available | Yellow = Needs Permission | Red = Unavailable"
+                       FontSize="11"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Border>
+
         <!-- Sensor List -->
-        <CollectionView Grid.Row="1"
+        <CollectionView Grid.Row="2"
                         ItemsSource="{Binding GroupedSensors}"
                         IsGrouped="True">
             <CollectionView.GroupHeaderTemplate>
@@ -63,16 +85,42 @@
                                 <Label Text="{Binding Description}"
                                        FontSize="12"
                                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
-                                <Label Text="{Binding AvailabilityLabel}"
-                                       FontSize="11"
-                                       TextColor="{Binding AvailabilityColor}"
-                                       FontAttributes="Italic" />
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{Binding AvailabilityLabel}"
+                                           FontSize="11"
+                                           TextColor="{Binding AvailabilityColor}"
+                                           FontAttributes="Italic" />
+                                    <Label IsVisible="{Binding NeedsPermission}"
+                                           Text="|"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray600}}" />
+                                    <Label IsVisible="{Binding NeedsPermission}"
+                                           Text="{Binding RequiredPermissions, StringFormat='Needs: {0}'}"
+                                           FontSize="11"
+                                           TextColor="#FF9800"
+                                           FontAttributes="Italic" />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
 
-                            <!-- Toggle -->
-                            <Switch Grid.Column="2"
-                                    IsToggled="{Binding IsEnabled, Mode=TwoWay}"
-                                    IsEnabled="{Binding IsAvailable}" />
+                            <!-- Toggle or Permission Button -->
+                            <Grid Grid.Column="2">
+                                <!-- Toggle for available sensors -->
+                                <Switch IsVisible="{Binding CanBeToggled}"
+                                        IsToggled="{Binding IsEnabled, Mode=TwoWay}"
+                                        IsEnabled="{Binding IsAvailable}"
+                                        VerticalOptions="Center" />
+
+                                <!-- Permission button for sensors needing permission -->
+                                <Button IsVisible="{Binding NeedsPermission}"
+                                        Text="Allow"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        BackgroundColor="#FF9800"
+                                        TextColor="White"
+                                        Command="{Binding BindingContext.RequestPermissionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                        CommandParameter="{Binding .}"
+                                        VerticalOptions="Center" />
+                            </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -80,7 +128,7 @@
         </CollectionView>
 
         <!-- Footer -->
-        <Button Grid.Row="2"
+        <Button Grid.Row="3"
                 Text="Save &amp; Continue"
                 Command="{Binding SaveSelectionCommand}"
                 Margin="20"
