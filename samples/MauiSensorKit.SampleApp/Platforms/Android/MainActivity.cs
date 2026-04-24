@@ -8,7 +8,7 @@ using MauiSensorKit.SampleApp.Views;
 
 namespace MauiSensorKit.SampleApp;
 
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, Exported = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[Activity(Name = "com.zenithcodestudio.sampleapp.MainActivity", Theme = "@style/Maui.SplashTheme", MainLauncher = true, Exported = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 [IntentFilter(new[] { Android.Content.Intent.ActionMain }, Categories = new[] { Android.Content.Intent.CategoryLauncher })]
 [IntentFilter(new[] { "android.nfc.action.NDEF_DISCOVERED" }, Categories = new[] { Android.Content.Intent.CategoryDefault }, DataMimeType = "text/plain")]
 [IntentFilter(new[] { "android.nfc.action.TAG_DISCOVERED" }, Categories = new[] { Android.Content.Intent.CategoryDefault })]

@@ -1,5 +1,0 @@
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0/MauiSensorKit.csproj.AssemblyReference.cache
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0/MauiSensorKit.GeneratedMSBuildEditorConfig.editorconfig
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0/MauiSensorKit.AssemblyInfoInputs.cache
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0/MauiSensorKit.AssemblyInfo.cs
-/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/Release/net10.0/MauiSensorKit.csproj.CoreCompileInputs.cache
