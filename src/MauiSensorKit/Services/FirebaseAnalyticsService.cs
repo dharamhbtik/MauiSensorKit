@@ -38,31 +38,54 @@ public sealed class FirebaseAnalyticsService
         try
         {
 #if ANDROID
-            // Check if Firebase is configured by trying to get the app instance
-            var app = Android.Gms.Tasks.Tasks.WhenAll(
-                Firebase.FirebaseApp.GetApps(global::Android.App.Application.Context))
-                .Await();
-            
-            if (app != null && app.Count > 0)
+            // Check if Firebase is configured using reflection
+            var firebaseAppType = Type.GetType("Firebase.FirebaseApp, Plugin.Firebase.Analytics");
+            if (firebaseAppType != null)
             {
-                _isFirebaseAvailable = true;
-                _logger.LogInformation("Firebase Analytics initialized successfully");
+                var getAppsMethod = firebaseAppType.GetMethod("GetApps", new[] { typeof(Android.Content.Context) });
+                if (getAppsMethod != null)
+                {
+                    var context = Android.App.Application.Context;
+                    var apps = getAppsMethod.Invoke(null, new object[] { context }) as System.Collections.IList;
+                    
+                    if (apps != null && apps.Count > 0)
+                    {
+                        _isFirebaseAvailable = true;
+                        _logger.LogInformation("Firebase Analytics initialized successfully");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Firebase not configured (no google-services.json found). Analytics will be disabled.");
+                    }
+                }
             }
             else
             {
-                _logger.LogWarning("Firebase not configured (no google-services.json found). Analytics will be disabled.");
+                _logger.LogWarning("Firebase SDK not found in project. Analytics will be disabled.");
             }
 #elif IOS
-            // On iOS, Firebase initialization is handled via GoogleService-Info.plist
-            // Check if Firebase App is configured
-            if (Firebase.Core.App.DefaultInstance != null)
+            // Check if Firebase is configured using reflection
+            var appType = Type.GetType("Firebase.Core.App, Plugin.Firebase.Analytics");
+            if (appType != null)
             {
-                _isFirebaseAvailable = true;
-                _logger.LogInformation("Firebase Analytics initialized successfully");
+                var defaultInstanceProperty = appType.GetProperty("DefaultInstance");
+                if (defaultInstanceProperty != null)
+                {
+                    var defaultInstance = defaultInstanceProperty.GetValue(null);
+                    if (defaultInstance != null)
+                    {
+                        _isFirebaseAvailable = true;
+                        _logger.LogInformation("Firebase Analytics initialized successfully");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Firebase not configured (no GoogleService-Info.plist found). Analytics will be disabled.");
+                    }
+                }
             }
             else
             {
-                _logger.LogWarning("Firebase not configured (no GoogleService-Info.plist found). Analytics will be disabled.");
+                _logger.LogWarning("Firebase SDK not found in project. Analytics will be disabled.");
             }
 #else
             _logger.LogInformation("Firebase Analytics not supported on this platform");

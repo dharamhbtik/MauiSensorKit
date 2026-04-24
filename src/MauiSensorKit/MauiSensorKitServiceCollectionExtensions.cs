@@ -1,5 +1,7 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace MauiSensorKit;
 
@@ -86,7 +88,7 @@ public static class MauiSensorKitServiceCollectionExtensions
         builder.Services.AddHostedService<UploadBackgroundService>();
 
         // 5. Register Firebase services (optional - gracefully handles missing google-services.json)
-        builder.Services.TryAddSingleton<FirebaseAnalyticsService>(sp =>
+        builder.Services.AddSingleton<FirebaseAnalyticsService>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<FirebaseAnalyticsService>>();
             var service = new FirebaseAnalyticsService(logger);
@@ -94,7 +96,7 @@ public static class MauiSensorKitServiceCollectionExtensions
             return service;
         });
         
-        builder.Services.TryAddSingleton<FirebaseCrashlyticsService>(sp =>
+        builder.Services.AddSingleton<FirebaseCrashlyticsService>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<FirebaseCrashlyticsService>>();
             var service = new FirebaseCrashlyticsService(logger);
