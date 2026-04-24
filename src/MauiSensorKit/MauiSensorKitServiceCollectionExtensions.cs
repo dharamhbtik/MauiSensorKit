@@ -81,9 +81,26 @@ public static class MauiSensorKitServiceCollectionExtensions
         // 4. Register services
         builder.Services.TryAddSingleton<ILocalStorageService, LocalStorageService>();
         builder.Services.AddHttpClient<UploadService>();
-        builder.Services.TryAddSingleton<IUploadService, UploadService>();
+        builder.Services.TryAddSingleton<IUploadService, IUploadService>(sp => sp.GetRequiredService<UploadService>());
         builder.Services.TryAddSingleton<ISensorCollectionService, SensorCollectionService>();
         builder.Services.AddHostedService<UploadBackgroundService>();
+
+        // 5. Register Firebase services (optional - gracefully handles missing google-services.json)
+        builder.Services.TryAddSingleton<FirebaseAnalyticsService>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<FirebaseAnalyticsService>>();
+            var service = new FirebaseAnalyticsService(logger);
+            service.TryInitialize();
+            return service;
+        });
+        
+        builder.Services.TryAddSingleton<FirebaseCrashlyticsService>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<FirebaseCrashlyticsService>>();
+            var service = new FirebaseCrashlyticsService(logger);
+            service.TryInitialize();
+            return service;
+        });
 
         return builder;
     }

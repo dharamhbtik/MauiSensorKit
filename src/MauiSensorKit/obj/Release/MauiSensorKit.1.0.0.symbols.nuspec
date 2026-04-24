@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dharamhbtik/MauiSensorKit</projectUrl>
     <description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</description>
     <tags>maui sensors accelerometer gps gyroscope magnetometer barometer nfc uwb telemetry iot mobile</tags>
-    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="4cbe3120965c8cb5b398b125537c05451903d8cb" />
+    <repository type="git" url="https://github.com/dharamhbtik/MauiSensorKit" commit="aebf2725b96481955f139b7b5a9225553460683f" />
     <dependencies>
       <group targetFramework="net10.0-android36.0">
         <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
@@ -18,6 +18,8 @@
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Analytics" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Crashlytics" version="3.0.0" exclude="Build,Analyzers" />
       </group>
       <group targetFramework="net10.0-ios26.0">
         <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
@@ -25,6 +27,8 @@
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Analytics" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Crashlytics" version="3.0.0" exclude="Build,Analyzers" />
       </group>
       <group targetFramework="net10.0-maccatalyst26.0">
         <dependency id="CommunityToolkit.Mvvm" version="8.4.2" exclude="Build,Analyzers" />
@@ -32,6 +36,8 @@
         <dependency id="Microsoft.Extensions.Logging.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls" version="10.0.20" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Maui.Controls.Compatibility" version="10.0.20" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Analytics" version="3.0.0" exclude="Build,Analyzers" />
+        <dependency id="Plugin.Firebase.Crashlytics" version="3.0.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>

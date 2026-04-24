@@ -18,7 +18,7 @@ using System.Reflection;
     "r data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, m" +
     "icrophone, NFC, UWB, and more."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4cbe3120965c8cb5b398b125537c05451903d8cb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aebf2725b96481955f139b7b5a9225553460683f")]
 [assembly: System.Reflection.AssemblyProductAttribute("MauiSensorKit")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MauiSensorKit")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

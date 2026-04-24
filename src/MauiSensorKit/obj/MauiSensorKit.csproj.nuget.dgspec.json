@@ -90,6 +90,14 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Plugin.Firebase.Analytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Plugin.Firebase.Crashlytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
             }
           },
           "imports": [
@@ -433,6 +441,14 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Plugin.Firebase.Analytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Plugin.Firebase.Crashlytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
             }
           },
           "imports": [
@@ -780,6 +796,14 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Plugin.Firebase.Analytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "Plugin.Firebase.Crashlytics": {
+              "target": "Package",
+              "version": "[3.0.0, )"
             }
           },
           "imports": [
