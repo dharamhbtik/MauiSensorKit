@@ -5,25 +5,43 @@
              x:Class="MauiSensorKit.SampleApp.Views.SensorSelectionPage"
              Title="Configure Sensors">
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Auto Select" Command="{Binding AutoSelectAvailableCommand}" />
-        <ToolbarItem Text="Enable All" Command="{Binding EnableAllCommand}" />
-        <ToolbarItem Text="Disable All" Command="{Binding DisableAllCommand}" />
-    </ContentPage.ToolbarItems>
-
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="15">
         <!-- Header -->
-        <VerticalStackLayout Grid.Row="0" Padding="20,10" Spacing="5">
-            <Label Text="Select Sensors to Record"
-                   FontSize="24"
-                   FontAttributes="Bold" />
-            <Label Text="Choose which sensors to enable for data collection."
+        <VerticalStackLayout Grid.Row="0" Padding="0,10" Spacing="5">
+            <Label Text="Configure Sensors"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+            <Label Text="Enable sensors to collect data"
                    FontSize="14"
-                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center" />
         </VerticalStackLayout>
 
+        <!-- Action Buttons -->
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Padding="0,10">
+            <Button Text="Auto Select Available"
+                    Command="{Binding AutoSelectAvailableCommand}"
+                    BackgroundColor="#512BD4"
+                    TextColor="White"
+                    Padding="15,8"
+                    FontSize="13" />
+            <Button Text="Enable All"
+                    Command="{Binding EnableAllCommand}"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    Padding="15,8"
+                    FontSize="13" />
+            <Button Text="Disable All"
+                    Command="{Binding DisableAllCommand}"
+                    BackgroundColor="#DC3545"
+                    TextColor="White"
+                    Padding="15,8"
+                    FontSize="13" />
+        </HorizontalStackLayout>
+
         <!-- Status Summary -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="2"
                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
                 Padding="15,10"
                 Margin="10,5"
@@ -44,7 +62,7 @@
         </Border>
 
         <!-- Sensor List -->
-        <CollectionView Grid.Row="2"
+        <CollectionView Grid.Row="3"
                         ItemsSource="{Binding GroupedSensors}"
                         IsGrouped="True">
             <CollectionView.GroupHeaderTemplate>
@@ -130,7 +148,7 @@
         </CollectionView>
 
         <!-- Footer -->
-        <Button Grid.Row="3"
+        <Button Grid.Row="4"
                 Text="Save &amp; Continue"
                 Command="{Binding SaveSelectionCommand}"
                 Margin="20"

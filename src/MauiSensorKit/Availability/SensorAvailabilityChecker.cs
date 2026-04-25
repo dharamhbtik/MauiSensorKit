@@ -118,13 +118,11 @@ public sealed class SensorAvailabilityChecker
     {
         return sensor switch
         {
-            // Hardware-gated sensors always return NotSupported
-            SensorType.Camera or
-            SensorType.DepthSensor or
-            SensorType.IRSensor or
-            SensorType.FingerprintSensor or
-            SensorType.FaceRecognition or
-            SensorType.HeartRateSensor => Task.FromResult(SensorAvailabilityStatus.NotSupported),
+            // Hardware-gated sensors - check actual availability
+            SensorType.Camera => CheckCameraAsync(),
+            SensorType.FingerprintSensor => CheckFingerprintAsync(),
+            SensorType.FaceRecognition => CheckFaceRecognitionAsync(),
+            SensorType.HeartRateSensor => CheckHeartRateAsync(),
 
             // MAUI Essentials sensors
             SensorType.Accelerometer => CheckAccelerometerAsync(),
@@ -485,6 +483,83 @@ public sealed class SensorAvailabilityChecker
 #elif IOS
         // iOS supports UWB on iPhone 11 and later with U1 chip
         return Task.FromResult(SensorAvailabilityStatus.Available);
+#else
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckCameraAsync()
+    {
+#if ANDROID
+        try
+        {
+            var context = global::Android.App.Application.Context;
+            var pm = context.PackageManager;
+            var hasCamera = pm?.HasSystemFeature(global::Android.Content.PM.PackageManager.FeatureCamera) == true;
+            return Task.FromResult(hasCamera ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
+#else
+        return Task.FromResult(SensorAvailabilityStatus.Available);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckFingerprintAsync()
+    {
+#if ANDROID
+        try
+        {
+            var context = global::Android.App.Application.Context;
+            var fingerprintManager = context.GetSystemService(global::Android.Content.Context.FingerprintService) as global::Android.Hardware.Fingerprints.FingerprintManager;
+            var isAvailable = fingerprintManager?.IsHardwareDetected == true && fingerprintManager?.HasEnrolledFingerprints == true;
+            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
+#else
+        // iOS uses different API
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckFaceRecognitionAsync()
+    {
+#if ANDROID
+        try
+        {
+            var context = global::Android.App.Application.Context;
+            var biometricManager = context.GetSystemService(global::Android.Content.Context.BiometricService) as global::Android.Hardware.Biometrics.BiometricManager;
+            var canAuth = biometricManager?.CanAuthenticate(global::Android.Hardware.Biometrics.BiometricManager.Authenticators.BiometricWeak);
+            var isAvailable = canAuth == global::Android.Hardware.Biometrics.BiometricManager.BiometricSuccess;
+            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
+#else
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckHeartRateAsync()
+    {
+#if ANDROID
+        try
+        {
+            var sensorManager = global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as global::Android.Hardware.SensorManager;
+            var sensor = sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.HeartRate);
+            return Task.FromResult(sensor != null ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
 #else
         return Task.FromResult(SensorAvailabilityStatus.Unavailable);
 #endif
