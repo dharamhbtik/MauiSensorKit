@@ -73,17 +73,6 @@ public static class MauiProgram
     }
 }
 
-public class App : Application
-{
-    private readonly IServiceProvider _services;
-
-    public App(IServiceProvider services)
-    {
-        _services = services;
-        MainPage = new AppShell(services);
-    }
-}
-
 public class AppShell : Shell
 {
     public AppShell(IServiceProvider services)
