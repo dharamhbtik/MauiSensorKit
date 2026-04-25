@@ -22,7 +22,7 @@
 
             <!-- Current Activity Card -->
             <Border Grid.Row="1" 
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    BackgroundColor="{StaticResource Primary}"
                     Padding="20"
                     Stroke="Transparent">
                 <Border.StrokeShape>
