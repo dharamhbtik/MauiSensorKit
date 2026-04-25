@@ -39,7 +39,7 @@ public class SensorRecordingService : Service
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error("SensorRecordingService", $"Error initializing service: {ex.Message}");
+            global::Android.Util.Log.Error("SensorRecordingService", $"Error initializing service: {ex.Message}");
         }
     }
 

@@ -41,14 +41,21 @@ public static class PermissionHelper
             permissions.Add(Manifest.Permission.PostNotifications);
         }
 
-        // Request all permissions
-        var results = await Permissions.RequestMultipleAsync(permissions.ToArray());
+        // Request permissions individually
+        var locationStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+        await Permissions.RequestAsync<Permissions.Microphone>();
+        
+        if (OperatingSystem.IsAndroidVersionAtLeast(29))
+        {
+            await Permissions.RequestAsync<Permissions.Sensors>();
+        }
+        
+        if (OperatingSystem.IsAndroidVersionAtLeast(33))
+        {
+            await Permissions.RequestAsync<Permissions.PostNotification>();
+        }
 
-        // Check if critical permissions were granted
-        var locationGranted = results.TryGetValue(Manifest.Permission.AccessFineLocation, out var locationStatus) &&
-                              locationStatus == PermissionStatus.Granted;
-
-        return locationGranted;
+        return locationStatus == PermissionStatus.Granted;
     }
 
     public static async Task<bool> RequestBackgroundLocationPermissionAsync()

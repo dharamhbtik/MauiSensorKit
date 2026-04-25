@@ -35,7 +35,6 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     private bool _crashDetected;
     
     // Motion analysis
-    private double _lastAccelMagnitude;
     private DateTime _lastStepTime;
     private int _stepCount;
     private Queue<double> _accelHistory = new(50);
@@ -43,7 +42,6 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     
     // Environment detection
     private double _lastNoiseLevel;
-    private double _avgNoiseLevel;
 
     public ActivityRecognitionViewModel(ISensorCollectionService sensorService)
     {
@@ -99,34 +97,28 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     {
         switch (reading.Type)
         {
-            case SensorType.Accelerometer:
-                AnalyzeMotion(reading);
+            case SensorType.Accelerometer when reading is AccelerometerReading accel:
+                AnalyzeMotion(accel);
                 break;
-            case SensorType.Gyroscope:
-                AnalyzeRotation(reading);
+            case SensorType.Gyroscope when reading is GyroscopeReading gyro:
+                AnalyzeRotation(gyro);
                 break;
-            case SensorType.Barometer:
-                AnalyzePressure(reading);
+            case SensorType.Barometer when reading is BarometerReading baro:
+                AnalyzePressure(baro);
                 break;
-            case SensorType.Microphone:
-                AnalyzeNoise(reading);
+            case SensorType.Microphone when reading is MicrophoneReading mic:
+                AnalyzeNoise(mic);
                 break;
-            case SensorType.StepCounter:
-                UpdateStepCount(reading);
+            case SensorType.StepCounter when reading is StepCounterReading step:
+                UpdateStepCount(step);
                 break;
         }
     }
 
-    private void AnalyzeMotion(SensorReading reading)
+    private void AnalyzeMotion(AccelerometerReading reading)
     {
-        if (reading.Values.Length < 3) return;
-        
-        var x = reading.Values[0];
-        var y = reading.Values[1];
-        var z = reading.Values[2];
-        
         // Calculate magnitude (removing gravity)
-        var magnitude = Math.Sqrt(x * x + y * y + z * z);
+        var magnitude = Math.Sqrt(reading.X * reading.X + reading.Y * reading.Y + reading.Z * reading.Z);
         _accelHistory.Enqueue(magnitude);
         if (_accelHistory.Count > 50) _accelHistory.Dequeue();
         
@@ -152,64 +144,51 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         DetectActivityFromMotion();
     }
 
-    private void AnalyzeRotation(SensorReading reading)
+    private void AnalyzeRotation(GyroscopeReading reading)
     {
-        if (reading.Values.Length < 3) return;
-        
-        var magnitude = Math.Sqrt(reading.Values[0] * reading.Values[0] + 
-                                  reading.Values[1] * reading.Values[1] + 
-                                  reading.Values[2] * reading.Values[2]);
+        var magnitude = Math.Sqrt(reading.X * reading.X + reading.Y * reading.Y + reading.Z * reading.Z);
         
         _gyroHistory.Enqueue(magnitude);
         if (_gyroHistory.Count > 50) _gyroHistory.Dequeue();
     }
 
-    private void AnalyzePressure(SensorReading reading)
+    private void AnalyzePressure(BarometerReading reading)
     {
         // Pressure changes indicate elevation changes (stairs, elevator, hill)
-        if (reading.Values.Length > 0)
+        var pressure = reading.Pressure;
+        // Implementation for elevation detection
+    }
+
+    private void AnalyzeNoise(MicrophoneReading reading)
+    {
+        _lastNoiseLevel = reading.Decibels;
+        
+        // Detect high noise environment (>80dB)
+        if (_lastNoiseLevel > 80)
         {
-            var pressure = reading.Values[0];
-            // Implementation for elevation detection
+            EnvironmentStatus = "High Noise Area";
+            if (CurrentActivity != "In Crowd" && CurrentActivity != "High Noise Area")
+            {
+                UpdateActivity("High Noise Area", "🔊", "85%");
+            }
+        }
+        else if (_lastNoiseLevel > 60)
+        {
+            EnvironmentStatus = "Moderate Noise";
+        }
+        else
+        {
+            EnvironmentStatus = "Quiet";
         }
     }
 
-    private void AnalyzeNoise(SensorReading reading)
+    private void UpdateStepCount(StepCounterReading reading)
     {
-        if (reading.Values.Length > 0)
+        var steps = reading.Steps;
+        if (steps > _stepCount)
         {
-            _lastNoiseLevel = reading.Values[0];
-            
-            // Detect high noise environment (>80dB)
-            if (_lastNoiseLevel > 80)
-            {
-                EnvironmentStatus = "High Noise Area";
-                if (CurrentActivity != "In Crowd" && CurrentActivity != "High Noise Area")
-                {
-                    UpdateActivity("High Noise Area", "🔊", "85%");
-                }
-            }
-            else if (_lastNoiseLevel > 60)
-            {
-                EnvironmentStatus = "Moderate Noise";
-            }
-            else
-            {
-                EnvironmentStatus = "Quiet";
-            }
-        }
-    }
-
-    private void UpdateStepCount(SensorReading reading)
-    {
-        if (reading.Values.Length > 0)
-        {
-            var steps = (int)reading.Values[0];
-            if (steps > _stepCount)
-            {
-                _stepCount = steps;
-                _lastStepTime = DateTime.Now;
-            }
+            _stepCount = steps;
+            _lastStepTime = DateTime.Now;
         }
     }
 
