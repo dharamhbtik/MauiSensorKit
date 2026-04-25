@@ -1,6 +1,6 @@
 # MauiSensorKit
 
-[![NuGet](https://img.shields.io/nuget/v/MauiSensorKit.svg)](https://www.nuget.org/packages/MauiSensorKit/)
+[![NuGet](https://img.shields.io/nuget/v/MauiSensorKit.svg)](https://www.nuget.org/packages/ZenithCode.MauiSensorKit/)
 [![Build](https://github.com/dharamhbtik/MauiSensorKit/actions/workflows/build-and-publish.yml/badge.svg)](https://github.com/dharamhbtik/MauiSensorKit/actions)
 
 A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.
