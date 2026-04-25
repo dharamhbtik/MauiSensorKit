@@ -50,9 +50,10 @@ public static class PermissionHelper
             await Permissions.RequestAsync<Permissions.Sensors>();
         }
         
+        // Post notification permission (Android 13+) handled separately
         if (OperatingSystem.IsAndroidVersionAtLeast(33))
         {
-            await Permissions.RequestAsync<Permissions.PostNotification>();
+            await Permissions.RequestAsync<PostNotificationPermission>();
         }
 
         return locationStatus == PermissionStatus.Granted;

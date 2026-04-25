@@ -155,13 +155,13 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     private void AnalyzePressure(BarometerReading reading)
     {
         // Pressure changes indicate elevation changes (stairs, elevator, hill)
-        var pressure = reading.Pressure;
+        var pressure = reading.PressureHPa;
         // Implementation for elevation detection
     }
 
     private void AnalyzeNoise(MicrophoneReading reading)
     {
-        _lastNoiseLevel = reading.Decibels;
+        _lastNoiseLevel = reading.AmplitudeDb;
         
         // Detect high noise environment (>80dB)
         if (_lastNoiseLevel > 80)
@@ -184,7 +184,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
 
     private void UpdateStepCount(StepCounterReading reading)
     {
-        var steps = reading.Steps;
+        var steps = reading.TotalSteps;
         if (steps > _stepCount)
         {
             _stepCount = steps;
