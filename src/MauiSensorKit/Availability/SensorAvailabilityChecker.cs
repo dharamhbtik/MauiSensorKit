@@ -120,6 +120,8 @@ public sealed class SensorAvailabilityChecker
         {
             // Hardware-gated sensors - check actual availability
             SensorType.Camera => CheckCameraAsync(),
+            SensorType.DepthSensor => CheckDepthSensorAsync(),
+            SensorType.IRSensor => CheckIRSensorAsync(),
             SensorType.FingerprintSensor => CheckFingerprintAsync(),
             SensorType.FaceRecognition => CheckFaceRecognitionAsync(),
             SensorType.HeartRateSensor => CheckHeartRateAsync(),
@@ -504,6 +506,73 @@ public sealed class SensorAvailabilityChecker
         }
 #else
         return Task.FromResult(SensorAvailabilityStatus.Available);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckDepthSensorAsync()
+    {
+#if ANDROID
+        try
+        {
+            // Check for ARCore depth support or ToF (Time of Flight) sensor
+            var context = global::Android.App.Application.Context;
+            var pm = context.PackageManager;
+            
+            // Check for ToF sensor (Proximity is actually IR-based ToF on many devices)
+            var sensorManager = context.GetSystemService(global::Android.Content.Context.SensorService) as global::Android.Hardware.SensorManager;
+            var hasToFSensor = sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Proximity) != null;
+            
+            // Check for camera2 depth capability
+            var hasDepthCamera = pm?.HasSystemFeature(global::Android.Content.PM.PackageManager.FeatureCameraCapabilitiesDepth) == true ||
+                                pm?.HasSystemFeature("android.hardware.camera.ar") == true;
+            
+            var isAvailable = hasToFSensor || hasDepthCamera;
+            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
+#elif IOS
+        // iPhone 12 Pro and later have LiDAR depth sensor
+        return Task.FromResult(SensorAvailabilityStatus.Available);
+#else
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+#endif
+    }
+
+    private static Task<SensorAvailabilityStatus> CheckIRSensorAsync()
+    {
+#if ANDROID
+        try
+        {
+            // Check for IR blaster (ConsumerIrManager) or IR camera capabilities
+            var context = global::Android.App.Application.Context;
+            var pm = context.PackageManager;
+            
+            // Check for IR blaster (most common IR sensor on phones)
+            var hasIRBlaster = pm?.HasSystemFeature(global::Android.Content.PM.PackageManager.FeatureConsumerIr) == true;
+            
+            // Check for IR camera (night vision/thermal)
+            var hasIRCamera = pm?.HasSystemFeature("android.hardware.camera.capabilities.ir") == true ||
+                             pm?.HasSystemFeature("android.hardware.camera.ir") == true;
+            
+            // Proximity sensor uses IR, so if that exists, basic IR capability exists
+            var sensorManager = context.GetSystemService(global::Android.Content.Context.SensorService) as global::Android.Hardware.SensorManager;
+            var hasProximityIR = sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Proximity) != null;
+            
+            var isAvailable = hasIRBlaster || hasIRCamera || hasProximityIR;
+            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+        }
+        catch
+        {
+            return Task.FromResult(SensorAvailabilityStatus.Unknown);
+        }
+#elif IOS
+        // iOS devices don't expose IR sensors directly
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+#else
+        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
 #endif
     }
 

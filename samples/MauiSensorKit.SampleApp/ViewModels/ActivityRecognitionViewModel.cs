@@ -315,7 +315,21 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
 
     public void Dispose()
     {
-        StopMonitoringAsync().Wait();
+        try
+        {
+            // Fire and forget with ContinueWith to avoid blocking UI thread
+            _ = StopMonitoringAsync().ContinueWith(t =>
+            {
+                if (t.Exception != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error during dispose: {t.Exception.Message}");
+                }
+            }, TaskContinuationOptions.ExecuteSynchronously);
+        }
+        catch
+        {
+            // Ignore exceptions during dispose
+        }
     }
 }
 
