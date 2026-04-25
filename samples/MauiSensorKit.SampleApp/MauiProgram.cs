@@ -64,51 +64,13 @@ public static class MauiProgram
         // Register ViewModels
         builder.Services.AddTransient<SensorSelectionViewModel>();
         builder.Services.AddTransient<DashboardViewModel>();
+        builder.Services.AddTransient<ActivityRecognitionViewModel>();
 
         // Register Views
         builder.Services.AddTransient<SensorSelectionPage>();
         builder.Services.AddTransient<DashboardPage>();
+        builder.Services.AddTransient<ActivityRecognitionPage>();
 
         return builder.Build();
-    }
-}
-
-public class AppShell : Shell
-{
-    public AppShell(IServiceProvider services)
-    {
-        Routing.RegisterRoute("sensorselection", typeof(SensorSelectionPage));
-        Routing.RegisterRoute("dashboard", typeof(DashboardPage));
-
-        Items.Add(new FlyoutItem
-        {
-            Title = "Configure Sensors",
-            Icon = new FontImageSource { Glyph = "\ue8b8", FontFamily = "MaterialIcons", Size = 20 },
-            Items =
-            {
-                new ShellContent
-                {
-                    Title = "Configure",
-                    ContentTemplate = new DataTemplate(() => services.GetRequiredService<SensorSelectionPage>())
-                }
-            }
-        });
-
-        Items.Add(new FlyoutItem
-        {
-            Title = "Dashboard",
-            Icon = new FontImageSource { Glyph = "\ue871", FontFamily = "MaterialIcons", Size = 20 },
-            Items =
-            {
-                new ShellContent
-                {
-                    Title = "Dashboard",
-                    ContentTemplate = new DataTemplate(() => services.GetRequiredService<DashboardPage>())
-                }
-            }
-        });
-
-        // Set initial route
-        CurrentItem = Items[0];
     }
 }

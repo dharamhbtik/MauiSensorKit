@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             x:Class="MauiSensorKit.SampleApp.Views.ActivityRecognitionPage"
+             Title="Activity Recognition">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="15" RowSpacing="15">
+            
+            <!-- Header -->
+            <VerticalStackLayout Grid.Row="0" Spacing="10">
+                <Label Text="Activity Recognition"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="Detect your current activity using sensors"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Current Activity Card -->
+            <Border Grid.Row="1" 
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    Padding="20"
+                    Stroke="Transparent">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="15" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                    <Label Grid.Column="0" 
+                           Text="{Binding ActivityIcon}"
+                           FontSize="48"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="5" VerticalOptions="Center">
+                        <Label Text="{Binding CurrentActivity}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                        <Label Text="{Binding Confidence, StringFormat='Confidence: {0}'}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=White, Dark=White}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Status & Controls -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <VerticalStackLayout Grid.Column="0" Spacing="5">
+                    <Label Text="{Binding StatusMessage}"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                    <Label Text="{Binding EnvironmentStatus, StringFormat='Environment: {0}'}"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                </VerticalStackLayout>
+                
+                <Button Grid.Column="1"
+                        Text="Start"
+                        Command="{Binding StartMonitoringCommand}"
+                        IsVisible="{Binding IsMonitoring, Converter={StaticResource InvertedBoolConverter}}"
+                        BackgroundColor="#28A745"
+                        TextColor="White"
+                        Padding="15,8"
+                        FontSize="13" />
+                
+                <Button Grid.Column="2"
+                        Text="Stop"
+                        Command="{Binding StopMonitoringCommand}"
+                        IsVisible="{Binding IsMonitoring}"
+                        BackgroundColor="#DC3545"
+                        TextColor="White"
+                        Padding="15,8"
+                        FontSize="13" />
+            </Grid>
+
+            <!-- Activity History -->
+            <Border Grid.Row="3"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    Padding="15"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*">
+                    <Label Grid.Row="0" 
+                           Text="Activity History"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           Margin="0,0,0,10" />
+                    
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding ActivityHistory}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="5" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="{Binding Icon}" FontSize="18" />
+                                    <Label Grid.Column="1" Text="{Binding Description}" FontSize="14" />
+                                    <Label Grid.Column="2" Text="{Binding Time}" 
+                                           FontSize="12" 
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Border>
+
+            <!-- Supported Activities -->
+            <Grid Grid.Row="4" ColumnDefinitions="*,*,*" ColumnSpacing="10" RowSpacing="10">
+                <Label Grid.Column="0" Text="🚶 Walking" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="1" Text="🏃 Running" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="2" Text="🪑 Sitting" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="0" Text="🚗 Driving" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="1" Text="🚆 Train/Bus" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="2" Text="🪜 Stairs" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="0" Text="👥 Crowd" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="1" Text="🔊 High Noise" FontSize="11" HorizontalOptions="Center" />
+                <Label Grid.Column="2" Text="💥 Crash" FontSize="11" HorizontalOptions="Center" />
+            </Grid>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
