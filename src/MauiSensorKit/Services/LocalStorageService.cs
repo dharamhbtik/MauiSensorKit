@@ -306,6 +306,115 @@ public sealed class LocalStorageService : ILocalStorageService, IDisposable
     }
 
     /// <inheritdoc/>
+    public string GetExportDirectoryPath()
+    {
+        var exportPath = Path.Combine(StoragePath, "Exports");
+        FileHelper.EnsureDirectoryExists(exportPath);
+        return exportPath;
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> ExportToTextFileAsync(CancellationToken cancellationToken = default)
+    {
+        var exportPath = GetExportDirectoryPath();
+        var fileName = $"SensorRecordings_{DateTimeOffset.UtcNow:yyyyMMdd_HHmmss}.txt";
+        var filePath = Path.Combine(exportPath, fileName);
+
+        try
+        {
+            var batches = await GetAllBatchesAsync(cancellationToken);
+            var sb = new System.Text.StringBuilder();
+            
+            sb.AppendLine("============================================");
+            sb.AppendLine("  MAUI SENSOR KIT - RECORDINGS EXPORT");
+            sb.AppendLine($"  Generated: {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+            sb.AppendLine("============================================");
+            sb.AppendLine();
+            sb.AppendLine($"Total Sessions: {batches.Count}");
+            sb.AppendLine();
+
+            foreach (var batch in batches.OrderBy(b => b.CreatedAt))
+            {
+                sb.AppendLine("--------------------------------------------");
+                sb.AppendLine($"Session ID: {batch.SessionId}");
+                sb.AppendLine($"Created: {batch.CreatedAt:yyyy-MM-dd HH:mm:ss}");
+                sb.AppendLine($"Readings: {batch.ReadingCount}");
+                sb.AppendLine($"File Size: {FileHelper.FormatBytes(batch.FileSizeBytes)}");
+                sb.AppendLine($"Uploaded: {(batch.IsUploaded ? "Yes" : "No")}");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("============================================");
+            sb.AppendLine("  END OF EXPORT");
+            sb.AppendLine("============================================");
+
+            await File.WriteAllTextAsync(filePath, sb.ToString(), cancellationToken);
+            _logger.LogInformation("Exported text file: {FilePath}", filePath);
+            return filePath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting to text file");
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> ExportToZipAsync(CancellationToken cancellationToken = default)
+    {
+        var exportPath = GetExportDirectoryPath();
+        var fileName = $"SensorRecordings_{DateTimeOffset.UtcNow:yyyyMMdd_HHmmss}.zip";
+        var filePath = Path.Combine(exportPath, fileName);
+
+        try
+        {
+            var batches = await GetAllBatchesAsync(cancellationToken);
+            var tempDir = Path.Combine(StoragePath, $"temp_export_{Guid.NewGuid():N}");
+            FileHelper.EnsureDirectoryExists(tempDir);
+
+            // Create metadata file
+            var metadataPath = Path.Combine(tempDir, "metadata.txt");
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("MAUI SENSOR KIT - ZIP EXPORT METADATA");
+            sb.AppendLine($"Generated: {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+            sb.AppendLine($"Total Sessions: {batches.Count}");
+            sb.AppendLine();
+            sb.AppendLine("Sessions:");
+            foreach (var batch in batches.OrderBy(b => b.CreatedAt))
+            {
+                sb.AppendLine($"  - {batch.SessionId}: {batch.ReadingCount} readings ({batch.CreatedAt:yyyy-MM-dd HH:mm:ss})");
+            }
+            await File.WriteAllTextAsync(metadataPath, sb.ToString(), cancellationToken);
+
+            // Copy all batch JSON files
+            foreach (var batch in batches)
+            {
+                var sourcePath = Path.Combine(StoragePath, batch.FileName);
+                var destPath = Path.Combine(tempDir, batch.FileName);
+                if (File.Exists(sourcePath))
+                {
+                    File.Copy(sourcePath, destPath, overwrite: true);
+                }
+            }
+
+            // Create ZIP archive
+            System.IO.Compression.ZipFile.CreateFromDirectory(tempDir, filePath, 
+                System.IO.Compression.CompressionLevel.Optimal, includeBaseDirectory: false);
+
+            // Cleanup temp directory
+            Directory.Delete(tempDir, recursive: true);
+
+            _logger.LogInformation("Exported ZIP file: {FilePath}", filePath);
+            return filePath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting to ZIP");
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         if (_disposed) return;

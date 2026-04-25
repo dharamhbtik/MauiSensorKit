@@ -6,7 +6,14 @@
              x:Class="MauiSensorKit.SampleApp.Views.DashboardPage"
              Title="Sensor Dashboard">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <local:BoolToRecordButtonTextConverter x:Key="BoolToRecordButtonTextConverter" />
+            <local:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto,Auto">
         <!-- Header -->
         <Border Grid.Row="0"
                 BackgroundColor="{StaticResource Primary}"
@@ -158,13 +165,33 @@
                         FontSize="12"
                         Padding="10,5" />
             </Grid>
+
+            <!-- Export Controls -->
+            <Grid Grid.Row="4" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                <Button Grid.Column="0"
+                        Text="Export to Text"
+                        Command="{Binding ExportToTextCommand}"
+                        FontSize="12"
+                        Padding="10,5"
+                        BackgroundColor="#17A2B8"
+                        TextColor="White" />
+
+                <Button Grid.Column="1"
+                        Text="Export to ZIP"
+                        Command="{Binding ExportToZipCommand}"
+                        FontSize="12"
+                        Padding="10,5"
+                        BackgroundColor="#6C757D"
+                        TextColor="White" />
+            </Grid>
+
+            <!-- Last Export Info -->
+            <Label Grid.Row="5"
+                   Text="{Binding LastExportPath, StringFormat='Last export: {0}'}"
+                   FontSize="10"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                   IsVisible="{Binding LastExportPath, Converter={StaticResource StringNotEmptyConverter}}"
+                   Margin="0,5,0,0" />
         </Border>
     </Grid>
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <local:BoolToRecordButtonTextConverter x:Key="BoolToRecordButtonTextConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
 </ContentPage>

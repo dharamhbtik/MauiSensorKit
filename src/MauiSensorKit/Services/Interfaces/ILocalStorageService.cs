@@ -71,4 +71,24 @@ public interface ILocalStorageService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that returns the pending batch count.</returns>
     Task<int> GetPendingBatchCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exports all recordings to a formatted text file.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that returns the path to the exported text file.</returns>
+    Task<string> ExportToTextFileAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Exports all recordings to a ZIP archive.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task that returns the path to the ZIP file.</returns>
+    Task<string> ExportToZipAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the export directory path for user access.
+    /// </summary>
+    /// <returns>The export directory path.</returns>
+    string GetExportDirectoryPath();
 }

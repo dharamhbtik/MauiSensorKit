@@ -49,3 +49,19 @@ public class BoolToRecordButtonTextConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converter that returns true if string is not null or empty.
+/// </summary>
+public class StringNotEmptyConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        return value is string str && !string.IsNullOrEmpty(str);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

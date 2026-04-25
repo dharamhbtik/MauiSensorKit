@@ -138,6 +138,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         StartCommand = new AsyncRelayCommand(StartAsync, () => CanStart);
         StopCommand = new AsyncRelayCommand(StopAsync, () => CanStop);
         ForceUploadCommand = new AsyncRelayCommand(ForceUploadAsync);
+        ExportToTextCommand = new AsyncRelayCommand(ExportToTextAsync, () => !IsExporting);
+        ExportToZipCommand = new AsyncRelayCommand(ExportToZipAsync, () => !IsExporting);
 
         // Subscribe to sensor readings
         _sensorService.ReadingRecorded += OnReadingRecorded;
@@ -307,6 +309,72 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during force upload");
+        }
+    }
+
+    /// <summary>
+    /// Command to export recordings to text file.
+    /// </summary>
+    public IAsyncRelayCommand ExportToTextCommand { get; }
+
+    /// <summary>
+    /// Command to export recordings to ZIP file.
+    /// </summary>
+    public IAsyncRelayCommand ExportToZipCommand { get; }
+
+    [ObservableProperty]
+    private string _lastExportPath = string.Empty;
+
+    [ObservableProperty]
+    private bool _isExporting;
+
+    private async Task ExportToTextAsync()
+    {
+        if (IsExporting) return;
+        
+        try
+        {
+            IsExporting = true;
+            var path = await _localStorage.ExportToTextFileAsync();
+            LastExportPath = path;
+            _logger.LogInformation("Exported to text file: {Path}", path);
+            
+            // Show success message with path
+            await Shell.Current.DisplayAlertAsync("Export Complete", $"Text file exported to:\n{path}", "OK");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting to text");
+            await Shell.Current.DisplayAlertAsync("Export Failed", $"Error: {ex.Message}", "OK");
+        }
+        finally
+        {
+            IsExporting = false;
+        }
+    }
+
+    private async Task ExportToZipAsync()
+    {
+        if (IsExporting) return;
+        
+        try
+        {
+            IsExporting = true;
+            var path = await _localStorage.ExportToZipAsync();
+            LastExportPath = path;
+            _logger.LogInformation("Exported to ZIP: {Path}", path);
+            
+            // Show success message with path
+            await Shell.Current.DisplayAlertAsync("Export Complete", $"ZIP file exported to:\n{path}", "OK");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting to ZIP");
+            await Shell.Current.DisplayAlertAsync("Export Failed", $"Error: {ex.Message}", "OK");
+        }
+        finally
+        {
+            IsExporting = false;
         }
     }
 
