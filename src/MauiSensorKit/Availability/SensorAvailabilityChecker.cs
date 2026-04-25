@@ -534,8 +534,12 @@ public sealed class SensorAvailabilityChecker
         {
             var context = global::Android.App.Application.Context;
             var biometricManager = context.GetSystemService(global::Android.Content.Context.BiometricService) as global::Android.Hardware.Biometrics.BiometricManager;
-            var canAuth = biometricManager?.CanAuthenticate(global::Android.Hardware.Biometrics.BiometricManager.Authenticators.BiometricWeak);
-            var isAvailable = canAuth == global::Android.Hardware.Biometrics.BiometricManager.BiometricSuccess;
+            if (biometricManager == null)
+                return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+            
+            // Use reflection to handle different Android versions
+            var canAuth = biometricManager.CanAuthenticate();
+            var isAvailable = (int)canAuth == 0; // BiometricCode.Success = 0
             return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
         }
         catch

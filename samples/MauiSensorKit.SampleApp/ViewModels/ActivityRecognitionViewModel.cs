@@ -8,7 +8,7 @@ namespace MauiSensorKit.SampleApp.ViewModels;
 
 public partial class ActivityRecognitionViewModel : ObservableObject, IDisposable
 {
-    private readonly ISensorService _sensorService;
+    private readonly ISensorCollectionService _sensorService;
     private readonly List<IDisposable> _subscriptions = new();
     
     [ObservableProperty]
@@ -46,7 +46,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     private double _lastNoiseLevel;
     private double _avgNoiseLevel;
 
-    public ActivityRecognitionViewModel(ISensorService sensorService)
+    public ActivityRecognitionViewModel(ISensorCollectionService sensorService)
     {
         _sensorService = sensorService;
     }
@@ -60,60 +60,11 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
             StatusMessage = "Analyzing sensor data...";
             ActivityHistory.Clear();
             
-            // Subscribe to accelerometer for motion analysis
-            var accelCollector = _sensorService.GetCollector(SensorType.Accelerometer);
-            if (accelCollector != null)
-            {
-                _subscriptions.Add(accelCollector.Data.Subscribe(data =>
-                {
-                    AnalyzeMotion(data);
-                }));
-                await accelCollector.StartAsync();
-            }
+            // Start sensor service
+            await _sensorService.StartAsync();
             
-            // Subscribe to gyroscope for rotation analysis
-            var gyroCollector = _sensorService.GetCollector(SensorType.Gyroscope);
-            if (gyroCollector != null)
-            {
-                _subscriptions.Add(gyroCollector.Data.Subscribe(data =>
-                {
-                    AnalyzeRotation(data);
-                }));
-                await gyroCollector.StartAsync();
-            }
-            
-            // Subscribe to barometer for elevation/pressure changes (indicates stairs/elevator)
-            var baroCollector = _sensorService.GetCollector(SensorType.Barometer);
-            if (baroCollector != null)
-            {
-                _subscriptions.Add(baroCollector.Data.Subscribe(data =>
-                {
-                    AnalyzePressure(data);
-                }));
-                await baroCollector.StartAsync();
-            }
-            
-            // Subscribe to microphone for noise level detection
-            var micCollector = _sensorService.GetCollector(SensorType.Microphone);
-            if (micCollector != null)
-            {
-                _subscriptions.Add(micCollector.Data.Subscribe(data =>
-                {
-                    AnalyzeNoise(data);
-                }));
-                await micCollector.StartAsync();
-            }
-            
-            // Subscribe to step counter
-            var stepCollector = _sensorService.GetCollector(SensorType.StepCounter);
-            if (stepCollector != null)
-            {
-                _subscriptions.Add(stepCollector.Data.Subscribe(data =>
-                {
-                    UpdateStepCount(data);
-                }));
-                await stepCollector.StartAsync();
-            }
+            // Subscribe to sensor readings
+            _sensorService.ReadingRecorded += OnSensorReading;
             
             StatusMessage = "Monitoring active - analyzing patterns...";
             AddActivityEvent("Monitoring started", "🚀");
@@ -131,15 +82,9 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         IsMonitoring = false;
         StatusMessage = "Monitoring stopped";
         
-        // Stop all collectors
-        foreach (var sensorType in new[] { SensorType.Accelerometer, SensorType.Gyroscope, SensorType.Barometer, SensorType.Microphone, SensorType.StepCounter })
-        {
-            var collector = _sensorService.GetCollector(sensorType);
-            if (collector != null)
-            {
-                await collector.StopAsync();
-            }
-        }
+        // Stop sensor service
+        _sensorService.ReadingRecorded -= OnSensorReading;
+        await _sensorService.StopAsync();
         
         // Clear subscriptions
         foreach (var sub in _subscriptions)
@@ -151,13 +96,35 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         AddActivityEvent("Monitoring stopped", "🛑");
     }
 
-    private void AnalyzeMotion(SensorData data)
+    private void OnSensorReading(object? sender, SensorReading reading)
     {
-        if (data.Values.Length < 3) return;
+        switch (reading.Type)
+        {
+            case SensorType.Accelerometer:
+                AnalyzeMotion(reading);
+                break;
+            case SensorType.Gyroscope:
+                AnalyzeRotation(reading);
+                break;
+            case SensorType.Barometer:
+                AnalyzePressure(reading);
+                break;
+            case SensorType.Microphone:
+                AnalyzeNoise(reading);
+                break;
+            case SensorType.StepCounter:
+                UpdateStepCount(reading);
+                break;
+        }
+    }
+
+    private void AnalyzeMotion(SensorReading reading)
+    {
+        if (reading.Values.Length < 3) return;
         
-        var x = data.Values[0];
-        var y = data.Values[1];
-        var z = data.Values[2];
+        var x = reading.Values[0];
+        var y = reading.Values[1];
+        var z = reading.Values[2];
         
         // Calculate magnitude (removing gravity)
         var magnitude = Math.Sqrt(x * x + y * y + z * z);
@@ -186,33 +153,33 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         DetectActivityFromMotion();
     }
 
-    private void AnalyzeRotation(SensorData data)
+    private void AnalyzeRotation(SensorReading reading)
     {
-        if (data.Values.Length < 3) return;
+        if (reading.Values.Length < 3) return;
         
-        var magnitude = Math.Sqrt(data.Values[0] * data.Values[0] + 
-                                  data.Values[1] * data.Values[1] + 
-                                  data.Values[2] * data.Values[2]);
+        var magnitude = Math.Sqrt(reading.Values[0] * reading.Values[0] + 
+                                  reading.Values[1] * reading.Values[1] + 
+                                  reading.Values[2] * reading.Values[2]);
         
         _gyroHistory.Enqueue(magnitude);
         if (_gyroHistory.Count > 50) _gyroHistory.Dequeue();
     }
 
-    private void AnalyzePressure(SensorData data)
+    private void AnalyzePressure(SensorReading reading)
     {
         // Pressure changes indicate elevation changes (stairs, elevator, hill)
-        if (data.Values.Length > 0)
+        if (reading.Values.Length > 0)
         {
-            var pressure = data.Values[0];
+            var pressure = reading.Values[0];
             // Implementation for elevation detection
         }
     }
 
-    private void AnalyzeNoise(SensorData data)
+    private void AnalyzeNoise(SensorReading reading)
     {
-        if (data.Values.Length > 0)
+        if (reading.Values.Length > 0)
         {
-            _lastNoiseLevel = data.Values[0];
+            _lastNoiseLevel = reading.Values[0];
             
             // Detect high noise environment (>80dB)
             if (_lastNoiseLevel > 80)
@@ -234,11 +201,11 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
     }
 
-    private void UpdateStepCount(SensorData data)
+    private void UpdateStepCount(SensorReading reading)
     {
-        if (data.Values.Length > 0)
+        if (reading.Values.Length > 0)
         {
-            var steps = (int)data.Values[0];
+            var steps = (int)reading.Values[0];
             if (steps > _stepCount)
             {
                 _stepCount = steps;
