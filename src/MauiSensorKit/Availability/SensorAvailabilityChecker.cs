@@ -522,8 +522,8 @@ public sealed class SensorAvailabilityChecker
             var sensorManager = context.GetSystemService(global::Android.Content.Context.SensorService) as global::Android.Hardware.SensorManager;
             var hasToFSensor = sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Proximity) != null;
             
-            // Check for camera2 depth capability
-            var hasDepthCamera = pm?.HasSystemFeature(global::Android.Content.PM.PackageManager.FeatureCameraCapabilitiesDepth) == true ||
+            // Check for camera2 depth capability using string literals for broader compatibility
+            var hasDepthCamera = pm?.HasSystemFeature("android.hardware.camera.capabilities.depth") == true ||
                                 pm?.HasSystemFeature("android.hardware.camera.ar") == true;
             
             var isAvailable = hasToFSensor || hasDepthCamera;
@@ -551,7 +551,7 @@ public sealed class SensorAvailabilityChecker
             var pm = context.PackageManager;
             
             // Check for IR blaster (most common IR sensor on phones)
-            var hasIRBlaster = pm?.HasSystemFeature(global::Android.Content.PM.PackageManager.FeatureConsumerIr) == true;
+            var hasIRBlaster = pm?.HasSystemFeature("android.hardware.consumerir") == true;
             
             // Check for IR camera (night vision/thermal)
             var hasIRCamera = pm?.HasSystemFeature("android.hardware.camera.capabilities.ir") == true ||
