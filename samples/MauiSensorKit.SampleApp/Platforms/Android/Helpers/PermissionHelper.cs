@@ -50,11 +50,9 @@ public static class PermissionHelper
             await Permissions.RequestAsync<Permissions.Sensors>();
         }
         
-        // Post notification permission (Android 13+) handled separately
-        if (OperatingSystem.IsAndroidVersionAtLeast(33))
-        {
-            await Permissions.RequestAsync<PostNotificationPermission>();
-        }
+        // Post notification permission (Android 13+) - declared in manifest
+        // Note: POST_NOTIFICATIONS is requested automatically on Android 13+
+        // when notifications are first shown, no explicit request needed
 
         return locationStatus == PermissionStatus.Granted;
     }

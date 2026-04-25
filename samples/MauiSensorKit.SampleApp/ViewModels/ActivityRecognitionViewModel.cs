@@ -36,7 +36,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     
     // Motion analysis
     private DateTime _lastStepTime;
-    private int _stepCount;
+    private long _stepCount;
     private Queue<double> _accelHistory = new(50);
     private Queue<double> _gyroHistory = new(50);
     
