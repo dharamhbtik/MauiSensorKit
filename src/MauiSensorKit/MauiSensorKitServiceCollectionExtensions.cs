@@ -54,7 +54,10 @@ public static class MauiSensorKitServiceCollectionExtensions
             }
         });
 
-        // 2. Register helpers
+        // 2. Register SensorKitOptions so it can be injected directly (not just IOptions<T>)
+        builder.Services.TryAddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SensorKitOptions>>().Value);
+
+        // 3. Register helpers
         builder.Services.TryAddSingleton<ConnectivityHelper>();
         builder.Services.TryAddSingleton<SensorAvailabilityChecker>();
 
