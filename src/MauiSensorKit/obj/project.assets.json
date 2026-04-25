@@ -10609,7 +10609,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/MauiSensorKit.csproj",
-      "projectName": "MauiSensorKit",
+      "projectName": "ZenithCode.MauiSensorKit",
       "projectPath": "/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/MauiSensorKit.csproj",
       "packagesPath": "/Users/dkumar/.nuget/packages/",
       "outputPath": "/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/obj/",
