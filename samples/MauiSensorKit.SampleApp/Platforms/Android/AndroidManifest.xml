@@ -25,6 +25,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    
+    <!-- Notifications for foreground service (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
     <!-- Wake lock for sensor collection -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -53,5 +57,12 @@
         android:icon="@mipmap/appicon"
         android:roundIcon="@mipmap/appicon_round"
         android:supportsRtl="true">
+        
+        <!-- Foreground Service for background sensor recording -->
+        <service android:name="com.zenithcodestudio.sampleapp.SensorRecordingService"
+                 android:enabled="true"
+                 android:exported="false"
+                 android:foregroundServiceType="dataSync|location"
+                 android:permission="android.permission.FOREGROUND_SERVICE" />
     </application>
 </manifest>

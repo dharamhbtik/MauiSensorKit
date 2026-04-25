@@ -242,6 +242,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         try
         {
+            // Start foreground service for background recording
+#if ANDROID
+            var context = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity ?? global::Android.App.Application.Context;
+            Platforms.Android.Services.SensorRecordingService.StartService(context);
+#endif
+
             await _sensorService.StartAsync();
 
             IsRecording = true;
@@ -264,6 +270,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         try
         {
             await _sensorService.StopAsync();
+
+            // Stop foreground service
+#if ANDROID
+            var context = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity ?? global::Android.App.Application.Context;
+            Platforms.Android.Services.SensorRecordingService.StopService(context);
+#endif
 
             IsRecording = false;
             _stopwatch?.Stop();

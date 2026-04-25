@@ -5,6 +5,8 @@ using Android.OS;
 using Microsoft.Maui.ApplicationModel;
 using MauiSensorKit;
 using MauiSensorKit.SampleApp.Views;
+using MauiSensorKit.SampleApp.Platforms.Android.Helpers;
+using MauiSensorKit.SampleApp.Platforms.Android.Services;
 
 namespace MauiSensorKit.SampleApp;
 
@@ -16,13 +18,56 @@ namespace MauiSensorKit.SampleApp;
 [MetaData("android.nfc.action.TECH_DISCOVERED", Resource = "@xml/nfc_tech_filter")]
 public class MainActivity : MauiAppCompatActivity
 {
+    private bool _permissionsRequested = false;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
 
         // Handle NFC intent if started via NFC tag
-        // Delay to ensure MAUI is initialized
         HandleNfcIntent(Intent);
+    }
+
+    protected override async void OnResume()
+    {
+        base.OnResume();
+
+        // Request permissions on first resume (after MAUI is initialized)
+        if (!_permissionsRequested)
+        {
+            _permissionsRequested = true;
+            await RequestPermissionsAsync();
+        }
+    }
+
+    private async Task RequestPermissionsAsync()
+    {
+        try
+        {
+            // Request essential permissions
+            var granted = await PermissionHelper.RequestEssentialPermissionsAsync();
+
+            if (!granted)
+            {
+                System.Diagnostics.Debug.WriteLine("Critical permissions not granted");
+            }
+
+            // Request background location (for background sensor recording)
+            if (OperatingSystem.IsAndroidVersionAtLeast(29))
+            {
+                await PermissionHelper.RequestBackgroundLocationPermissionAsync();
+            }
+
+            // Request high sampling rate permission (Android 12+)
+            if (OperatingSystem.IsAndroidVersionAtLeast(31))
+            {
+                await PermissionHelper.RequestHighSamplingRatePermissionAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error requesting permissions: {ex.Message}");
+        }
     }
 
     protected override void OnNewIntent(Intent? intent)
@@ -38,7 +83,6 @@ public class MainActivity : MauiAppCompatActivity
         try
         {
             // Pass NFC intent to the NFC collector
-            // Use IPlatformApplication.Current.Services instead of obsolete MauiApplication.Current.Services
             var app = IPlatformApplication.Current;
             if (app?.Services != null)
             {

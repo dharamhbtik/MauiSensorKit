@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SensorKit Demo</string>
-    <string name="channel_name">Sensor Collection</string>
-    <string name="channel_description">Background sensor data collection service</string>
+    <string name="app_name">MauiSensorKit</string>
+    <string name="channel_name">Sensor Recording</string>
+    <string name="channel_description">Background sensor data collection</string>
+    <string name="notification_title">Recording sensor data</string>
+    <string name="notification_text">Sensor data is being collected in background</string>
 </resources>
