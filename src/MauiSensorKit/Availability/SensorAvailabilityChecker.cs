@@ -582,17 +582,35 @@ public sealed class SensorAvailabilityChecker
         try
         {
             var context = global::Android.App.Application.Context;
-            var fingerprintManager = context.GetSystemService(global::Android.Content.Context.FingerprintService) as global::Android.Hardware.Fingerprints.FingerprintManager;
-            var isAvailable = fingerprintManager?.IsHardwareDetected == true && fingerprintManager?.HasEnrolledFingerprints == true;
-            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            
+            // Use BiometricManager for API 29+ (Android 10+)
+            if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.Q)
+            {
+                var biometricManager = context.GetSystemService(global::Android.Content.Context.BiometricService) as global::Android.Hardware.Biometrics.BiometricManager;
+                if (biometricManager == null)
+                    return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+                
+                // Check for BIOMETRIC_STRONG = 0x000F (fingerprint or strong face)
+                const int BiometricStrong = 0x000F; // BiometricManager.Authenticators.BiometricStrong
+                var canAuth = biometricManager.CanAuthenticate(BiometricStrong);
+                var isAvailable = canAuth == global::Android.Hardware.Biometrics.BiometricCode.Success;
+                return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            }
+            else
+            {
+                // Fallback to deprecated FingerprintManager for older Android
+                var fingerprintManager = context.GetSystemService(global::Android.Content.Context.FingerprintService) as global::Android.Hardware.Fingerprints.FingerprintManager;
+                var isAvailable = fingerprintManager?.IsHardwareDetected == true && fingerprintManager?.HasEnrolledFingerprints == true;
+                return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            }
         }
         catch
         {
             return Task.FromResult(SensorAvailabilityStatus.Unknown);
         }
 #else
-        // iOS uses different API
-        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+        // iOS uses LocalAuthentication framework
+        return Task.FromResult(SensorAvailabilityStatus.Available);
 #endif
     }
 
@@ -602,21 +620,34 @@ public sealed class SensorAvailabilityChecker
         try
         {
             var context = global::Android.App.Application.Context;
-            var biometricManager = context.GetSystemService(global::Android.Content.Context.BiometricService) as global::Android.Hardware.Biometrics.BiometricManager;
-            if (biometricManager == null)
-                return Task.FromResult(SensorAvailabilityStatus.Unavailable);
             
-            // Use reflection to handle different Android versions
-            var canAuth = biometricManager.CanAuthenticate();
-            var isAvailable = (int)canAuth == 0; // BiometricCode.Success = 0
-            return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            // Use BiometricManager for API 29+ (Android 10+)
+            if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.Q)
+            {
+                var biometricManager = context.GetSystemService(global::Android.Content.Context.BiometricService) as global::Android.Hardware.Biometrics.BiometricManager;
+                if (biometricManager == null)
+                    return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+                
+                // Check for DEVICE_CREDENTIAL (0x0100) or BIOMETRIC_WEAK (0x00FF) for face unlock
+                const int BiometricWeak = 0x00FF;      // BiometricManager.Authenticators.BiometricWeak
+                const int DeviceCredential = 0x0100;   // BiometricManager.Authenticators.DeviceCredential
+                var canAuth = biometricManager.CanAuthenticate(BiometricWeak | DeviceCredential);
+                var isAvailable = canAuth == global::Android.Hardware.Biometrics.BiometricCode.Success;
+                return Task.FromResult(isAvailable ? SensorAvailabilityStatus.Available : SensorAvailabilityStatus.Unavailable);
+            }
+            else
+            {
+                // Face recognition not reliably available before Android 10
+                return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+            }
         }
         catch
         {
             return Task.FromResult(SensorAvailabilityStatus.Unknown);
         }
 #else
-        return Task.FromResult(SensorAvailabilityStatus.Unavailable);
+        // iOS Face ID via LocalAuthentication
+        return Task.FromResult(SensorAvailabilityStatus.Available);
 #endif
     }
 

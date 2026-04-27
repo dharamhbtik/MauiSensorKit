@@ -1,13 +1,30 @@
+#if ANDROID
+using Android.Hardware;
+using Android.Runtime;
+#endif
+
 using Microsoft.Extensions.Logging;
 
 namespace MauiSensorKit;
 
 /// <summary>
-/// Collector for accelerometer sensor data.
+/// Collector for accelerometer sensor data with significant change detection.
 /// </summary>
 public sealed class AccelerometerCollector : BaseSensorCollector<AccelerometerCollector>
 {
     private string? _sessionId;
+
+#if ANDROID
+    private SensorManager? _sensorManager;
+    private Sensor? _accelerometerSensor;
+    private AccelerometerListener? _listener;
+    
+    // Significant change detection
+    private float _lastX, _lastY, _lastZ;
+    private const float SignificantChangeThreshold = 0.5f; // m/s^2
+    private DateTime _lastReadingTime = DateTime.MinValue;
+    private readonly TimeSpan _minTimeBetweenReadings = TimeSpan.FromMilliseconds(100); // Max 10Hz
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccelerometerCollector"/> class.
@@ -25,15 +42,24 @@ public sealed class AccelerometerCollector : BaseSensorCollector<AccelerometerCo
     /// <inheritdoc/>
     public override Task<bool> IsSupportedAsync()
     {
+#if ANDROID
         try
         {
-            return Task.FromResult(Accelerometer.Default?.IsSupported ?? false);
+            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
+            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Accelerometer);
+            return Task.FromResult(sensor != null);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error checking accelerometer support");
+            Logger.LogError(ex, "Error checking accelerometer support on Android");
             return Task.FromResult(false);
         }
+#elif IOS
+        return Task.FromResult(true);
+#else
+        Logger.LogWarning("Accelerometer not supported on this platform");
+        return Task.FromResult(false);
+#endif
     }
 
     /// <inheritdoc/>
@@ -48,11 +74,32 @@ public sealed class AccelerometerCollector : BaseSensorCollector<AccelerometerCo
         try
         {
             _sessionId = sessionId;
-            Accelerometer.Default.ReadingChanged += OnReadingChanged;
-            Accelerometer.Default.Start(Options.MotionSensorSpeed);
-            IsRunning = true;
 
-            Logger.LogInformation("Accelerometer collector started with speed {Speed}", Options.MotionSensorSpeed);
+#if ANDROID
+            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
+            _accelerometerSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Accelerometer);
+
+            if (_accelerometerSensor == null)
+            {
+                Logger.LogWarning("Accelerometer not available on this Android device");
+                return Task.CompletedTask;
+            }
+
+            _lastX = _lastY = _lastZ = 0;
+            _lastReadingTime = DateTime.MinValue;
+            
+            _listener = new AccelerometerListener(this);
+            _sensorManager.RegisterListener(_listener, _accelerometerSensor, SensorDelay.Normal);
+#elif IOS
+            Logger.LogWarning("iOS accelerometer implementation not yet complete");
+            return Task.CompletedTask;
+#else
+            Logger.LogWarning("Accelerometer not supported on this platform");
+            return Task.CompletedTask;
+#endif
+
+            IsRunning = true;
+            Logger.LogInformation("Accelerometer collector started (significant change detection enabled)");
         }
         catch (Exception ex)
         {
@@ -73,8 +120,14 @@ public sealed class AccelerometerCollector : BaseSensorCollector<AccelerometerCo
 
         try
         {
-            Accelerometer.Default.ReadingChanged -= OnReadingChanged;
-            Accelerometer.Default.Stop();
+#if ANDROID
+            if (_sensorManager != null && _listener != null)
+            {
+                _sensorManager.UnregisterListener(_listener);
+                _listener = null;
+            }
+#endif
+
             IsRunning = false;
             _sessionId = null;
 
@@ -88,25 +141,76 @@ public sealed class AccelerometerCollector : BaseSensorCollector<AccelerometerCo
         return Task.CompletedTask;
     }
 
-    private void OnReadingChanged(object? sender, AccelerometerChangedEventArgs e)
+#if ANDROID
+    private bool IsSignificantChange(float x, float y, float z)
     {
-        try
+        var now = DateTime.Now;
+        
+        // Rate limiting - don't record more than every 100ms
+        if (now - _lastReadingTime < _minTimeBetweenReadings)
+            return false;
+        
+        // Calculate magnitude change
+        var deltaX = Math.Abs(x - _lastX);
+        var deltaY = Math.Abs(y - _lastY);
+        var deltaZ = Math.Abs(z - _lastZ);
+        var totalDelta = deltaX + deltaY + deltaZ;
+        
+        // Check if change is significant
+        if (totalDelta > SignificantChangeThreshold)
         {
-            var reading = new AccelerometerReading
-            {
-                DeviceId = DeviceId,
-                SessionId = _sessionId ?? string.Empty,
-                X = e.Reading.Acceleration.X,
-                Y = e.Reading.Acceleration.Y,
-                Z = e.Reading.Acceleration.Z,
-                IsSimulated = DeviceInfo.Current?.DeviceType == DeviceType.Virtual
-            };
-
-            RaiseReading(reading);
+            _lastX = x;
+            _lastY = y;
+            _lastZ = z;
+            _lastReadingTime = now;
+            return true;
         }
-        catch (Exception ex)
+        
+        return false;
+    }
+
+    private class AccelerometerListener : Java.Lang.Object, ISensorEventListener
+    {
+        private readonly AccelerometerCollector _collector;
+
+        public AccelerometerListener(AccelerometerCollector collector)
         {
-            Logger.LogError(ex, "Error processing accelerometer reading");
+            _collector = collector;
+        }
+
+        public void OnAccuracyChanged(Sensor? sensor, SensorStatus accuracy) { }
+
+        public void OnSensorChanged(SensorEvent? e)
+        {
+            if (e?.Values == null || e.Values.Count < 3) return;
+
+            try
+            {
+                var x = e.Values[0];
+                var y = e.Values[1];
+                var z = e.Values[2];
+                
+                // Only record significant changes
+                if (!_collector.IsSignificantChange(x, y, z))
+                    return;
+
+                var reading = new AccelerometerReading
+                {
+                    DeviceId = _collector.DeviceId,
+                    SessionId = _collector._sessionId ?? string.Empty,
+                    X = x,
+                    Y = y,
+                    Z = z,
+                    IsSimulated = false
+                };
+
+                _collector.RaiseReading(reading);
+            }
+            catch (Exception ex)
+            {
+                _collector.Logger.LogError(ex, "Error processing accelerometer reading");
+            }
         }
     }
+#endif
 }

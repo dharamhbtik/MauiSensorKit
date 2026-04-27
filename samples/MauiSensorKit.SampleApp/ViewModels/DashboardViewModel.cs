@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MauiSensorKit;
+using MauiSensorKit.SampleApp.Services;
 
 namespace MauiSensorKit.SampleApp.ViewModels;
 
@@ -65,6 +66,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly ISensorCollectionService _sensorService;
     private readonly ILocalStorageService _localStorage;
     private readonly IUploadService _uploadService;
+    private readonly RouteDataStore _routeDataStore;
+    private readonly BatteryDataStore _batteryDataStore;
+    private readonly ActivityRecognitionViewModel _activityRecognitionViewModel;
     private readonly ILogger<DashboardViewModel> _logger;
 
     private Stopwatch? _stopwatch;
@@ -128,12 +132,22 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         ISensorCollectionService sensorService,
         ILocalStorageService localStorage,
         IUploadService uploadService,
+        RouteDataStore routeDataStore,
+        BatteryDataStore batteryDataStore,
+        BackgroundDataStoreConnector dataStoreConnector,
+        ActivityRecognitionViewModel activityRecognitionViewModel,
         ILogger<DashboardViewModel> logger)
     {
         _sensorService = sensorService ?? throw new ArgumentNullException(nameof(sensorService));
         _localStorage = localStorage ?? throw new ArgumentNullException(nameof(localStorage));
         _uploadService = uploadService ?? throw new ArgumentNullException(nameof(uploadService));
+        _routeDataStore = routeDataStore ?? throw new ArgumentNullException(nameof(routeDataStore));
+        _batteryDataStore = batteryDataStore ?? throw new ArgumentNullException(nameof(batteryDataStore));
+        _activityRecognitionViewModel = activityRecognitionViewModel ?? throw new ArgumentNullException(nameof(activityRecognitionViewModel));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        
+        // DataStoreConnector is injected to ensure it's instantiated and listening to sensor readings
+        _ = dataStoreConnector;
 
         StartCommand = new AsyncRelayCommand(StartAsync, () => CanStart);
         StopCommand = new AsyncRelayCommand(StopAsync, () => CanStop);
@@ -183,6 +197,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     private void OnReadingRecorded(object? sender, SensorReading reading)
     {
+        // Only update readings when recording is active
+        if (!IsRecording)
+            return;
+
         var item = LiveReadings.FirstOrDefault(r => r.Type == reading.Type);
         if (item != null)
         {
@@ -254,6 +272,14 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
             IsRecording = true;
             SessionId = _sensorService.CurrentSessionId;
+            
+            // Start new sessions in data stores for route/battery tracking
+            _routeDataStore.StartNewSession(SessionId ?? Guid.NewGuid().ToString("N"));
+            _batteryDataStore.StartNewSession(SessionId ?? Guid.NewGuid().ToString("N"));
+            
+            // Start activity recognition automatically
+            await _activityRecognitionViewModel.StartMonitoringCommand.ExecuteAsync(null);
+            
             _stopwatch = Stopwatch.StartNew();
 
             _logger.LogInformation("Started recording session {SessionId}", SessionId);
@@ -282,6 +308,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             IsRecording = false;
             _stopwatch?.Stop();
             Elapsed = _stopwatch?.Elapsed ?? TimeSpan.Zero;
+            
+            // Stop activity recognition
+            await _activityRecognitionViewModel.StopMonitoringCommand.ExecuteAsync(null);
+            
+            // Data stores keep their data until explicitly cleared
+            // so users can still view route and battery data after stopping
 
             _logger.LogInformation("Stopped recording session");
 

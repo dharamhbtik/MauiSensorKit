@@ -46,7 +46,7 @@ public static class SensorAvailabilityStatusExtensions
             SensorAvailabilityStatus.Available => "Available",
             SensorAvailabilityStatus.Unavailable => "Not on this device",
             SensorAvailabilityStatus.PermissionNeeded => "Requires Permission",
-            SensorAvailabilityStatus.NotSupported => "Not Supported by SDK",
+            SensorAvailabilityStatus.NotSupported => "External API Required",
             SensorAvailabilityStatus.Unknown => "Unknown",
             _ => status.ToString()
         };

@@ -8,14 +8,10 @@ public partial class ActivityRecognitionPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnDisappearing()
+    protected override void OnAppearing()
     {
-        base.OnDisappearing();
-        
-        // Stop monitoring when leaving the page
-        if (BindingContext is ViewModels.ActivityRecognitionViewModel vm)
-        {
-            vm.StopMonitoringCommand.ExecuteAsync(null);
-        }
+        base.OnAppearing();
+        // Page returns to foreground - VM continues running in background
+        // UI will automatically update via data bindings
     }
 }

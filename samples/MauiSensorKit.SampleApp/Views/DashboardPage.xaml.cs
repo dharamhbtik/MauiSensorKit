@@ -2,7 +2,7 @@ using MauiSensorKit.SampleApp.ViewModels;
 
 namespace MauiSensorKit.SampleApp.Views;
 
-public partial class DashboardPage : ContentPage, IDisposable
+public partial class DashboardPage : ContentPage
 {
     private readonly DashboardViewModel _viewModel;
 
@@ -18,16 +18,6 @@ public partial class DashboardPage : ContentPage, IDisposable
         await Shell.Current.GoToAsync("///sensorselection");
     }
 
-    public void Dispose()
-    {
-        _viewModel.Dispose();
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        Dispose();
-    }
 }
 
 /// <summary>

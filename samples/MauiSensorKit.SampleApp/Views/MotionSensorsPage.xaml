@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:Class="MauiSensorKit.SampleApp.Views.MotionSensorsPage"
+             Title="Motion Sensors">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,Auto,*,*,*,*" Padding="15" RowSpacing="10">
+            <!-- Header -->
+            <VerticalStackLayout Grid.Row="0" Padding="0,10">
+                <Label Text="Motion Sensors Monitor"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="Real-time graphs for Gyroscope, Magnetometer, Gravity &amp; Linear Acceleration"
+                       FontSize="12"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+
+            <!-- Controls -->
+            <HorizontalStackLayout Grid.Row="1" Spacing="15" HorizontalOptions="Center" Padding="0,10">
+                <Button Text="Start Recording"
+                        Command="{Binding StartRecordingCommand}"
+                        IsVisible="True"
+                        BackgroundColor="#28A745"
+                        TextColor="White"
+                        Padding="20,10">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsRecording}" Value="True">
+                            <Setter Property="IsVisible" Value="False" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Text="Stop Recording"
+                        Command="{Binding StopRecordingCommand}"
+                        IsVisible="False"
+                        BackgroundColor="#DC3545"
+                        TextColor="White"
+                        Padding="20,10">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding IsRecording}" Value="True">
+                            <Setter Property="IsVisible" Value="True" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </HorizontalStackLayout>
+
+            <!-- Status -->
+            <Label Grid.Row="2"
+                   Text="{Binding StatusMessage}"
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center"
+                   Margin="0,5" />
+
+            <!-- Gyroscope Chart -->
+            <Border Grid.Row="3" 
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    Padding="10"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Gyroscope (X=Red, Y=Green, Z=Blue)"
+                           FontSize="14"
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding GyroValues}"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                           FontFamily="Consolas" />
+                    <microcharts:ChartView Chart="{Binding GyroChart}"
+                                           HeightRequest="120"
+                                           BackgroundColor="Transparent" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Magnetometer Chart -->
+            <Border Grid.Row="4" 
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    Padding="10"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Magnetometer (X=Red, Y=Green, Z=Blue)"
+                           FontSize="14"
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding MagValues}"
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                           FontFamily="Consolas" />
+                    <microcharts:ChartView Chart="{Binding MagnetometerChart}"
+                                           HeightRequest="120"
+                                           BackgroundColor="Transparent" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Gravity & Linear Accel Charts -->
+            <Grid Grid.Row="5" ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Border Grid.Column="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="10"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Gravity (m/s²)"
+                               FontSize="12"
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding GravityValues}"
+                               FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                               FontFamily="Consolas" />
+                        <microcharts:ChartView Chart="{Binding GravityChart}"
+                                               HeightRequest="100"
+                                               BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="10"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Linear Acceleration (m/s²)"
+                               FontSize="12"
+                               FontAttributes="Bold" />
+                        <Label Text="{Binding LinearValues}"
+                               FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                               FontFamily="Consolas" />
+                        <microcharts:ChartView Chart="{Binding LinearAccelChart}"
+                                               HeightRequest="100"
+                                               BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollView>
+</ContentPage>

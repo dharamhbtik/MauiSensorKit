@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiSensorKit.SampleApp.Views.RouteTrackerPage"
+             Title="Route Tracker">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Stats Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,*,*" Padding="10,5" BackgroundColor="{AppThemeBinding Light=#F0F0F0, Dark=#333333}">
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
+                <Label Text="Points" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                <Label Text="{Binding PointCount}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                <Label Text="Distance (km)" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                <Label Text="{Binding TotalDistanceKm, StringFormat='{0:F2}'}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
+                <Label Text="Duration" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                <Label Text="{Binding SessionDuration}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Map -->
+        <WebView Grid.Row="1" 
+                 x:Name="MapWebView"/>
+
+        <!-- Status & Controls -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Padding="10" ColumnSpacing="10">
+            <Label Grid.Column="0" 
+                   Text="{Binding CurrentStatus}" 
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"/>
+            <Button Grid.Column="1" 
+                    Text="Refresh" 
+                    Command="{Binding RefreshMapCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    FontSize="12"/>
+            <Button Grid.Column="2" 
+                    Text="Clear" 
+                    Command="{Binding ClearRouteCommand}"
+                    BackgroundColor="{StaticResource Gray400}"
+                    TextColor="White"
+                    FontSize="12"/>
+        </Grid>
+    </Grid>
+
+</ContentPage>

@@ -117,16 +117,23 @@
                                            FontSize="11"
                                            TextColor="#FF9800"
                                            FontAttributes="Italic" />
+                                    <Label IsVisible="{Binding IsSdkLimited}"
+                                           Text="{Binding NotSupportedReason}"
+                                           FontSize="10"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                           FontAttributes="Italic"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="2" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
                             <!-- Toggle or Permission Button -->
                             <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto" ColumnSpacing="5">
-                                <!-- Toggle for available sensors -->
+                                <!-- Toggle for available sensors (including SDK-limited ones like Camera, Fingerprint) -->
                                 <Switch Grid.Column="0"
                                         IsVisible="{Binding CanBeToggled}"
                                         IsToggled="{Binding IsEnabled, Mode=TwoWay}"
-                                        IsEnabled="{Binding IsAvailable}"
+                                        IsEnabled="{Binding CanBeToggled}"
                                         VerticalOptions="Center" />
 
                                 <!-- Permission button for sensors needing permission -->

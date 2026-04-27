@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using MauiSensorKit;
 using MauiSensorKit.SampleApp.ViewModels;
 using MauiSensorKit.SampleApp.Views;
+using MauiSensorKit.SampleApp.Services;
+using Microcharts.Maui;
 
 namespace MauiSensorKit.SampleApp;
 
@@ -12,10 +14,11 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMicrocharts()
             .UseMauiSensorKit(
                 options =>
                 {
-                    // Load enabled sensors from preferences
+                    // Load enabled sensors from preferences, or enable all by default
                     var enabledJson = Preferences.Default.Get<string?>("MauiSensorKit_EnabledSensors", null);
                     if (!string.IsNullOrEmpty(enabledJson))
                     {
@@ -29,10 +32,15 @@ public static class MauiProgram
                         }
                         catch { }
                     }
+                    else
+                    {
+                        // Enable all sensors by default if no preferences set
+                        options.EnableAll();
+                    }
 
                     // Configure intervals
                     options.LocationInterval = TimeSpan.FromSeconds(5);
-                    options.BatteryPollingInterval = TimeSpan.FromSeconds(30);
+                    options.BatteryPollingInterval = TimeSpan.FromSeconds(60); // 1 minute for graph
                     options.MicrophonePollingInterval = TimeSpan.FromSeconds(1);
                     options.SlowSensorPollingInterval = TimeSpan.FromSeconds(10);
                     options.BatchSize = 100;
@@ -61,15 +69,26 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // Register ViewModels
+        // Register data stores for route and battery tracking
+        builder.Services.AddSingleton<RouteDataStore>();
+        builder.Services.AddSingleton<BatteryDataStore>();
+        builder.Services.AddSingleton<BackgroundDataStoreConnector>();
+
+        // Register ViewModels - Singletons persist state across navigation
         builder.Services.AddTransient<SensorSelectionViewModel>();
-        builder.Services.AddTransient<DashboardViewModel>();
-        builder.Services.AddTransient<ActivityRecognitionViewModel>();
+        builder.Services.AddSingleton<DashboardViewModel>();
+        builder.Services.AddSingleton<ActivityRecognitionViewModel>();
+        builder.Services.AddSingleton<RouteTrackerViewModel>();
+        builder.Services.AddSingleton<BatteryGraphViewModel>();
+        builder.Services.AddSingleton<MotionSensorsViewModel>();
 
         // Register Views
         builder.Services.AddTransient<SensorSelectionPage>();
         builder.Services.AddTransient<DashboardPage>();
         builder.Services.AddTransient<ActivityRecognitionPage>();
+        builder.Services.AddTransient<RouteTrackerPage>();
+        builder.Services.AddTransient<BatteryGraphPage>();
+        builder.Services.AddTransient<MotionSensorsPage>();
 
         return builder.Build();
     }

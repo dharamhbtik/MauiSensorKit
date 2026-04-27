@@ -64,9 +64,9 @@ public partial class SensorToggleItem : ObservableObject
     public bool NeedsPermission => Availability == SensorAvailabilityStatus.PermissionNeeded;
 
     /// <summary>
-    /// Gets whether the sensor can be toggled (available or needs permission).
+    /// Gets whether the sensor can be toggled (all except truly unavailable hardware).
     /// </summary>
-    public bool CanBeToggled => Availability != SensorAvailabilityStatus.NotSupported && Availability != SensorAvailabilityStatus.Unavailable;
+    public bool CanBeToggled => Availability != SensorAvailabilityStatus.Unavailable;
 
     /// <summary>
     /// Gets the permission status label.
@@ -89,12 +89,36 @@ public partial class SensorToggleItem : ObservableObject
     public Color AvailabilityColor => Availability.GetColor();
 
     /// <summary>
+    /// Gets whether the sensor is SDK-limited (NotSupported status but can be toggled).
+    /// </summary>
+    public bool IsSdkLimited => Availability == SensorAvailabilityStatus.NotSupported;
+
+    /// <summary>
+    /// Gets the reason why sensor is not supported (for hardware-gated sensors).
+    /// </summary>
+    public string NotSupportedReason => GetNotSupportedReason(Type);
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="SensorToggleItem"/> class.
     /// </summary>
     /// <param name="type">The sensor type.</param>
     public SensorToggleItem(SensorType type)
     {
         Type = type;
+    }
+
+    private static string GetNotSupportedReason(SensorType type)
+    {
+        return type switch
+        {
+            SensorType.Camera => "Use CommunityToolkit CameraView",
+            SensorType.DepthSensor => "Use ARCore/ARKit frameworks",
+            SensorType.IRSensor => "Use ProximitySensor instead",
+            SensorType.FingerprintSensor => "Use BiometricAuthentication",
+            SensorType.FaceRecognition => "Use BiometricAuthentication",
+            SensorType.HeartRateSensor => "Use HealthKit/Health Connect",
+            _ => string.Empty
+        };
     }
 
     private static string GetRequiredPermissions(SensorType type)
@@ -107,6 +131,21 @@ public partial class SensorToggleItem : ObservableObject
             SensorType.StepCounter or SensorType.StepDetector => "Activity Recognition",
             _ => "None"
         };
+    }
+
+    /// <summary>
+    /// Refreshes all computed properties when availability changes.
+    /// </summary>
+    public void RefreshComputedProperties()
+    {
+        OnPropertyChanged(nameof(IsAvailable));
+        OnPropertyChanged(nameof(IsNotSupported));
+        OnPropertyChanged(nameof(NeedsPermission));
+        OnPropertyChanged(nameof(CanBeToggled));
+        OnPropertyChanged(nameof(IsSdkLimited));
+        OnPropertyChanged(nameof(AvailabilityLabel));
+        OnPropertyChanged(nameof(AvailabilityColor));
+        OnPropertyChanged(nameof(NotSupportedReason));
     }
 }
 
@@ -269,6 +308,11 @@ public partial class SensorSelectionViewModel : ObservableObject
                     {
                         sensor.IsEnabled = true;
                     }
+                    // Disable sensors that are not supported or unavailable
+                    if (status == SensorAvailabilityStatus.NotSupported || status == SensorAvailabilityStatus.Unavailable)
+                    {
+                        sensor.IsEnabled = false;
+                    }
                 }
             }
 
@@ -277,6 +321,12 @@ public partial class SensorSelectionViewModel : ObservableObject
             OnPropertyChanged(nameof(AvailableCount));
             OnPropertyChanged(nameof(PermissionNeededCount));
             OnPropertyChanged(nameof(StatusSummary));
+            
+            // Force refresh all sensor computed properties
+            foreach (var sensor in Sensors)
+            {
+                sensor.RefreshComputedProperties();
+            }
         }
         catch (Exception ex)
         {
@@ -382,12 +432,22 @@ public partial class SensorSelectionViewModel : ObservableObject
             var enabledSensors = Sensors.ToDictionary(s => s.Type, s => s.IsEnabled);
             var json = System.Text.Json.JsonSerializer.Serialize(enabledSensors);
             Preferences.Default.Set("MauiSensorKit_EnabledSensors", json);
-
-            await Shell.Current.GoToAsync("///dashboard");
+            
+            _logger.LogInformation("Saved sensor selection: {Count} sensors configured", enabledSensors.Count);
+            
+            // Close flyout and navigate to dashboard using main thread
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                Shell.Current.FlyoutIsPresented = false;
+                // Navigate to the Dashboard FlyoutItem (index 0)
+                var dashboardItem = Shell.Current.Items[0];
+                Shell.Current.CurrentItem = dashboardItem;
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving sensor selection");
+            await Shell.Current.DisplayAlert("Error", $"Failed to save: {ex.Message}", "OK");
         }
     }
 

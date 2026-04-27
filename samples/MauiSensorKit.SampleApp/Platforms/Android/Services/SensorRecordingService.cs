@@ -5,6 +5,7 @@ using Android.OS;
 using AndroidX.Core.App;
 using MauiSensorKit;
 using Microsoft.Extensions.Logging;
+using Android.Provider;
 
 namespace MauiSensorKit.SampleApp.Platforms.Android.Services;
 
@@ -23,6 +24,7 @@ public class SensorRecordingService : Service
     private ISensorCollectionService? _sensorService;
     private ILogger<SensorRecordingService>? _logger;
     private bool _isRunning;
+    private PowerManager.WakeLock? _wakeLock;
 
     public override void OnCreate()
     {
@@ -67,6 +69,12 @@ public class SensorRecordingService : Service
     {
         try
         {
+            // Acquire wake lock to keep CPU running
+            AcquireWakeLock();
+            
+            // Disable battery optimizations for this app
+            DisableBatteryOptimization();
+            
             CreateNotificationChannel();
             var notification = CreateNotification();
             
@@ -88,11 +96,69 @@ public class SensorRecordingService : Service
             });
 
             _isRunning = true;
-            _logger?.LogInformation("Sensor recording service started");
+            _logger?.LogInformation("Sensor recording service started with wake lock");
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error starting recording service");
+        }
+    }
+
+    private void AcquireWakeLock()
+    {
+        try
+        {
+            var powerManager = GetSystemService(PowerService) as PowerManager;
+            if (powerManager != null)
+            {
+                _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "MauiSensorKit::RecordingWakeLock");
+                _wakeLock?.SetReferenceCounted(false);
+                _wakeLock?.Acquire();
+                _logger?.LogInformation("Wake lock acquired for background recording");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error acquiring wake lock");
+        }
+    }
+
+    private void ReleaseWakeLock()
+    {
+        try
+        {
+            _wakeLock?.Release();
+            _wakeLock = null;
+            _logger?.LogInformation("Wake lock released");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error releasing wake lock");
+        }
+    }
+
+    private void DisableBatteryOptimization()
+    {
+        try
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(23))
+            {
+                var powerManager = GetSystemService(PowerService) as PowerManager;
+                var packageName = PackageName;
+                
+                if (powerManager?.IsIgnoringBatteryOptimizations(packageName) == false)
+                {
+                    var intent = new Intent(Settings.ActionRequestIgnoreBatteryOptimizations);
+                    intent.SetData(global::Android.Net.Uri.Parse("package:" + packageName));
+                    intent.AddFlags(ActivityFlags.NewTask);
+                    StartActivity(intent);
+                    _logger?.LogInformation("Requested battery optimization exemption");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error disabling battery optimization");
         }
     }
 
@@ -111,6 +177,7 @@ public class SensorRecordingService : Service
             _isRunning = false;
             _logger?.LogInformation("Sensor recording service stopped");
             
+            ReleaseWakeLock();
             StopForeground(StopForegroundFlags.Remove);
             StopSelf();
         }

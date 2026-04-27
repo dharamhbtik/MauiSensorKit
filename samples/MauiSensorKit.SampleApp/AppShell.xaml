@@ -17,4 +17,16 @@
         <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" />
     </FlyoutItem>
 
+    <FlyoutItem Title="Route Tracker" Icon="location">
+        <ShellContent ContentTemplate="{DataTemplate local:RouteTrackerPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Battery Monitor" Icon="battery">
+        <ShellContent ContentTemplate="{DataTemplate local:BatteryGraphPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Motion Sensors">
+        <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" />
+    </FlyoutItem>
+
 </Shell>

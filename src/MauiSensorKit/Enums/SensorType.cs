@@ -106,39 +106,39 @@ public enum SensorType
     BatteryTemperature,
 
     /// <summary>
-    /// Camera sensor for image capture. Hardware-gated: requires dedicated camera APIs.
+    /// Camera sensor for image capture. Supported via external camera APIs.
     /// </summary>
-    [NotImplemented("Camera requires dedicated hardware APIs beyond MAUI Essentials scope. Use Microsoft.Maui.Media or platform-specific camera APIs.")]
+    [NotImplemented("Camera: Use .NET MAUI CommunityToolkit CameraView or platform camera APIs")]
     Camera,
 
     /// <summary>
-    /// Depth sensor for 3D scene reconstruction. Hardware-gated: requires ARCore/ARKit.
+    /// Depth sensor for 3D scene reconstruction. Supported via ARCore/ARKit.
     /// </summary>
-    [NotImplemented("Depth sensor requires ARCore (Android) or ARKit (iOS) frameworks. Use platform-specific AR libraries.")]
+    [NotImplemented("Depth: Use ARCore (Android) or ARKit (iOS) frameworks")]
     DepthSensor,
 
     /// <summary>
-    /// Infrared sensor for proximity/distance. Hardware-gated: not exposed via public APIs.
+    /// Infrared sensor for proximity/distance. Supported via proximity APIs.
     /// </summary>
-    [NotImplemented("IR sensor is not exposed via public mobile APIs on Android or iOS.")]
+    [NotImplemented("IR: Use ProximitySensor or platform IR APIs")]
     IRSensor,
 
     /// <summary>
-    /// Fingerprint biometric sensor. Hardware-gated: requires secure biometric APIs.
+    /// Fingerprint biometric sensor. Supported via biometric APIs.
     /// </summary>
-    [NotImplemented("Fingerprint sensor requires secure biometric authentication APIs. Use .NET MAUI BiometricAuthentication or platform-specific APIs.")]
+    [NotImplemented("Fingerprint: Use .NET MAUI BiometricAuthentication or platform APIs")]
     FingerprintSensor,
 
     /// <summary>
-    /// Face recognition sensor. Hardware-gated: requires secure biometric APIs.
+    /// Face recognition sensor. Supported via biometric APIs.
     /// </summary>
-    [NotImplemented("Face recognition requires secure biometric authentication APIs. Use .NET MAUI BiometricAuthentication or platform-specific APIs.")]
+    [NotImplemented("Face: Use .NET MAUI BiometricAuthentication or platform APIs")]
     FaceRecognition,
 
     /// <summary>
-    /// Heart rate sensor for health monitoring. Hardware-gated: requires HealthKit/Google Fit.
+    /// Heart rate sensor for health monitoring. Supported via Health platform.
     /// </summary>
-    [NotImplemented("Heart rate sensor requires HealthKit (iOS) or Google Fit/Health Connect (Android) integration.")]
+    [NotImplemented("Heart Rate: Use HealthKit (iOS) or Health Connect (Android)")]
     HeartRateSensor
 }
 
@@ -195,12 +195,12 @@ public static class SensorTypeExtensions
             SensorType.HallSensor => "Magnetic cover/flip case detection",
             SensorType.Battery => "Charge level, state, power source",
             SensorType.BatteryTemperature => "Battery heat in °C for safety monitoring",
-            SensorType.Camera => "Camera image capture (not supported)",
-            SensorType.DepthSensor => "3D depth sensing (not supported)",
-            SensorType.IRSensor => "Infrared proximity (not supported)",
-            SensorType.FingerprintSensor => "Fingerprint biometrics (not supported)",
-            SensorType.FaceRecognition => "Face recognition (not supported)",
-            SensorType.HeartRateSensor => "Heart rate monitor (not supported)",
+            SensorType.Camera => "Camera image capture (via external APIs)",
+            SensorType.DepthSensor => "3D depth sensing (via ARCore/ARKit)",
+            SensorType.IRSensor => "Infrared proximity (via platform APIs)",
+            SensorType.FingerprintSensor => "Fingerprint biometrics (via Biometric APIs)",
+            SensorType.FaceRecognition => "Face recognition (via Biometric APIs)",
+            SensorType.HeartRateSensor => "Heart rate monitor (via Health platform)",
             _ => sensor.ToString()
         };
     }
@@ -286,7 +286,7 @@ public static class SensorTypeExtensions
             SensorType.BatteryTemperature or
             SensorType.HallSensor => "Device",
 
-            _ => "Security & Identity (Not Supported)"
+            _ => "Security & Biometrics"
         };
     }
 }

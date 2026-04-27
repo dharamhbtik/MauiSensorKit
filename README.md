@@ -8,7 +8,9 @@ A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sens
 ## Features
 
 - **25+ Sensors**: Accelerometer, Gyroscope, Magnetometer, GPS, Barometer, Battery, Microphone, NFC, UWB, and more
-- **Background Recording**: Continue collecting data even when app is in background
+- **Background Recording**: Continue collecting data even when app is in background (with wake lock and battery optimization)
+- **Route Tracking**: Real-time GPS route visualization with interactive map
+- **Battery Monitoring**: Battery level tracking with graph visualization over time
 - **Local Storage**: Save recordings to local device storage
 - **Export Options**: Export as formatted text file or compressed ZIP archive
 - **Auto Upload**: Automatic upload to your API endpoint with retry logic
@@ -113,6 +115,8 @@ Add to `Platforms/Android/AndroidManifest.xml`:
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.WAKE_LOCK" />
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
 <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
 <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
@@ -361,8 +365,10 @@ These sensors require dedicated hardware APIs beyond MAUI Essentials scope:
 |----------|------|---------|-------------|
 | `EnabledSensors` | `Dictionary<SensorType, bool>` | All enabled | Which sensors to collect |
 | `MotionSensorSpeed` | `SensorSpeed` | `UI` | Sampling rate for motion sensors |
+| `AccelerometerThreshold` | `float` | 0.5 | Minimum change (m/s²) to record |
+| `AccelerometerMaxRate` | `int` | 10 | Max recordings per second for accelerometer |
 | `LocationInterval` | `TimeSpan` | 5s | GPS update interval |
-| `BatteryPollingInterval` | `TimeSpan` | 30s | Battery check interval |
+| `BatteryPollingInterval` | `TimeSpan` | 60s | Battery check interval (1 minute for graph) |
 | `MicrophonePollingInterval` | `TimeSpan` | 1s | Audio amplitude sampling |
 | `SlowSensorPollingInterval` | `TimeSpan` | 10s | Temp/humidity/etc interval |
 | `EnableLocalStorage` | `bool` | `true` | Store data locally |
@@ -420,6 +426,38 @@ Batches are sent as:
   "readingCount": 100
 }
 ```
+
+## Sample Application Features
+
+The included sample app (`samples/MauiSensorKit.SampleApp`) demonstrates all SDK capabilities:
+
+### Dashboard
+- Start/stop sensor recording
+- Live sensor readings display
+- Storage size and pending upload status
+- Export data to text or ZIP
+
+### Route Tracker
+- Interactive OpenStreetMap showing GPS route during recording
+- Real-time statistics: point count, total distance, session duration
+- Route polyline with start/end markers
+- Auto-updates every 2 seconds while recording
+
+### Battery Monitor
+- Line chart visualization of battery percentage over time
+- Shows last 60 readings (~1 hour at default interval)
+- Current charge level, state (Charging/Discharging), power source
+- Updates every 5 seconds during recording
+
+### Activity Recognition
+- Real-time activity detection (Walking, Running, Driving, Stationary)
+- Uses accelerometer variance and step detection
+- Confidence indicators and motion statistics
+
+### Sensor Selection
+- Enable/disable individual sensors
+- Configure sampling rates and intervals
+- Battery optimization settings
 
 ## Permissions
 
