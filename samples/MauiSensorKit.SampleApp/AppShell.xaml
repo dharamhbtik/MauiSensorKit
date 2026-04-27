@@ -3,53 +3,67 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:local="clr-namespace:MauiSensorKit.SampleApp.Views"
        x:Class="MauiSensorKit.SampleApp.AppShell"
-       Title="MauiSensorKit"
+       Title="SensorKit"
        BackgroundColor="#0F0F1A"
        ForegroundColor="#FFFFFF"
        TitleColor="#FFFFFF"
-       TabBarBackgroundColor="#1A1A2E"
-       TabBarForegroundColor="#6C63FF"
-       TabBarUnselectedColor="#6B6B8A"
-       TabBarTitleColor="#6C63FF"
-       NavBarIsVisible="False">
+       NavBarIsVisible="False"
+       FlyoutBackgroundColor="#1A1A2E"
+       FlyoutWidth="280">
 
-    <!-- 6-Tab Bottom Navigation -->
-    <TabBar>
-        <!-- Tab 1: Dashboard (Home) -->
-        <Tab Title="Home" Icon="🏠">
-            <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" 
-                         Route="dashboard" />
-        </Tab>
+    <!-- Flyout Header -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="#6C63FF" HeightRequest="140" Padding="20">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="8">
+                <Label Text="📱" FontSize="40" HorizontalOptions="Start"/>
+                <Label Text="SensorKit" 
+                       TextColor="#FFFFFF" 
+                       FontSize="24" 
+                       FontAttributes="Bold"/>
+                <Label Text="Advanced Sensor Analytics" 
+                       TextColor="#E0E0E0" 
+                       FontSize="12"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
 
-        <!-- Tab 2: Motion Sensors with Graphs -->
-        <Tab Title="Sensors" Icon="📊">
-            <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" 
-                         Route="sensors" />
-        </Tab>
+    <!-- Flyout Items -->
+    <FlyoutItem Title="Dashboard" Icon="●">
+        <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" Route="dashboard"/>
+    </FlyoutItem>
 
-        <!-- Tab 3: Activity Recognition -->
-        <Tab Title="Activity" Icon="🏃">
-            <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" 
-                         Route="activity" />
-        </Tab>
+    <FlyoutItem Title="Motion Sensors" Icon="◆">
+        <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" Route="sensors"/>
+    </FlyoutItem>
 
-        <!-- Tab 4: Live Route Map -->
-        <Tab Title="Map" Icon="🗺️">
-            <ShellContent ContentTemplate="{DataTemplate local:MapPage}" 
-                         Route="map" />
-        </Tab>
+    <FlyoutItem Title="Activity Recognition" Icon="▲">
+        <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" Route="activity"/>
+    </FlyoutItem>
 
-        <!-- Tab 5: Battery Analytics -->
-        <Tab Title="Battery" Icon="🔋">
-            <ShellContent ContentTemplate="{DataTemplate local:BatteryPage}" 
-                         Route="battery" />
-        </Tab>
+    <FlyoutItem Title="Live Route Map" Icon="■">
+        <ShellContent ContentTemplate="{DataTemplate local:MapPage}" Route="map"/>
+    </FlyoutItem>
 
-        <!-- Tab 6: Setup/Sensor Configuration -->
-        <Tab Title="Setup" Icon="⚙️">
-            <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" 
-                         Route="setup" />
-        </Tab>
-    </TabBar>
+    <FlyoutItem Title="Battery Analytics" Icon="◉">
+        <ShellContent ContentTemplate="{DataTemplate local:BatteryPage}" Route="battery"/>
+    </FlyoutItem>
+
+    <FlyoutItem Title="Sensor Setup" Icon="✛">
+        <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" Route="setup"/>
+    </FlyoutItem>
+
+    <!-- Separator -->
+    <MenuItem Text="──────────────" IsEnabled="False"/>
+
+    <!-- Version Info Footer -->
+    <Shell.FlyoutFooter>
+        <Grid BackgroundColor="#0F0F1A" Padding="20" HeightRequest="60">
+            <Label Text="v1.1.0 • ZenithCode" 
+                   TextColor="#6B6B8A" 
+                   FontSize="11"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"/>
+        </Grid>
+    </Shell.FlyoutFooter>
 
 </Shell>
