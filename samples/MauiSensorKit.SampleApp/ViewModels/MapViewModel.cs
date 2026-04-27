@@ -2,8 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiSensorKit;
 using MauiSensorKit.SampleApp.Services;
-using Microsoft.Maui.Controls.Maps;
-using Microsoft.Maui.Maps;
 using System.Collections.ObjectModel;
 
 namespace MauiSensorKit.SampleApp.ViewModels;
@@ -47,9 +45,9 @@ public partial class MapViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _speedString = "0.0 km/h";
     
-    private MapType _currentMapType = MapType.Street;
+    private string _currentMapType = "Street";
     
-    public MapType CurrentMapType
+    public string CurrentMapType
     {
         get => _currentMapType;
         set
@@ -72,7 +70,6 @@ public partial class MapViewModel : ObservableObject, IDisposable
     private Microsoft.Maui.Devices.Sensors.Location? _currentLocation;
     
     private System.Threading.Timer? _refreshTimer;
-    private List<Polyline> _routePolylines = new();
     
     public MapViewModel(IRouteTrackingService routeTrackingService, ISensorCollectionService sensorService, SessionStateService sessionState)
     {
@@ -158,9 +155,9 @@ public partial class MapViewModel : ObservableObject, IDisposable
     {
         CurrentMapType = CurrentMapType switch
         {
-            MapType.Street => MapType.Satellite,
-            MapType.Satellite => MapType.Hybrid,
-            _ => MapType.Street
+            "Street" => "Satellite",
+            "Satellite" => "Hybrid",
+            _ => "Street"
         };
     }
     
