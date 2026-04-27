@@ -29,6 +29,38 @@ public sealed record BatteryReading : SensorReading
     /// Gets the current power source.
     /// </summary>
     public BatteryPowerSource PowerSource { get; init; }
+    
+    /// <summary>
+    /// Gets the battery voltage in volts if available.
+    /// </summary>
+    public double? VoltageVolts { get; init; }
+    
+    /// <summary>
+    /// Gets the current in milliamps (negative = discharge, positive = charge).
+    /// </summary>
+    public double? CurrentMilliAmps { get; init; }
+    
+    /// <summary>
+    /// Gets the battery temperature in Celsius if available.
+    /// </summary>
+    public double? TemperatureCelsius { get; init; }
+    
+    /// <summary>
+    /// Gets the estimated remaining minutes until full charge or empty.
+    /// </summary>
+    public double? EstimatedRemainingMinutes { get; init; }
+    
+    /// <summary>
+    /// Gets the battery health status based on temperature.
+    /// </summary>
+    public BatteryHealthStatus HealthStatus => TemperatureCelsius switch
+    {
+        null => BatteryHealthStatus.Unknown,
+        < 5 => BatteryHealthStatus.Cold,
+        > 45 => BatteryHealthStatus.Hot,
+        > 40 => BatteryHealthStatus.Warm,
+        _ => BatteryHealthStatus.Good
+    };
 
     /// <summary>
     /// Gets a value indicating whether the device is currently charging.

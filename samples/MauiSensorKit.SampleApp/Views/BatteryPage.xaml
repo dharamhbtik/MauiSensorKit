@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             xmlns:mauisensorkit="clr-namespace:MauiSensorKit;assembly=MauiSensorKit"
+             x:Class="MauiSensorKit.SampleApp.Views.BatteryPage"
+             Title="Battery"
+             BackgroundColor="#0F0F1A">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="16">
+
+            <!-- SECTION 1: Hero Card -->
+            <Frame BackgroundColor="#6C63FF"
+                   CornerRadius="16"
+                   HasShadow="True"
+                   Padding="24">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                    <!-- Battery Icon and Percentage -->
+                    <HorizontalStackLayout Grid.Row="0" Spacing="16" HorizontalOptions="Center">
+                        <Label Text="🔋" FontSize="48" />
+                        <Label Text="{Binding CurrentSnapshot.ChargePercent, StringFormat='{0:F0}%'}}"
+                               FontSize="48"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                    </HorizontalStackLayout>
+                    
+                    <!-- Charging Status -->
+                    <Label Grid.Row="1"
+                           Text="{Binding EstimatedTimeString}"
+                           FontSize="16"
+                           TextColor="#CCFFFFFF"
+                           HorizontalOptions="Center" />
+                    
+                    <!-- Stats Row -->
+                    <HorizontalStackLayout Grid.Row="2" 
+                                          Spacing="24" 
+                                          HorizontalOptions="Center"
+                                          Margin="0,8,0,0">
+                        <Label Text="{Binding CurrentSnapshot.TemperatureCelsius, StringFormat='Temp: {0:F0}°C'}" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                        <Label Text="{Binding CurrentSnapshot.VoltageVolts, StringFormat='Voltage: {0:F1}V'}" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                        <Label Text="{Binding CurrentSnapshot.CurrentMilliAmps, StringFormat='Current: {0:F0}mA'}" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </HorizontalStackLayout>
+                    
+                    <!-- Health Status -->
+                    <Label Grid.Row="3"
+                           Text="{Binding CurrentSnapshot.HealthStatus}"
+                           FontSize="12"
+                           TextColor="#99FFFFFF"
+                           HorizontalOptions="Center"
+                           Margin="0,4,0,0" />
+                </Grid>
+            </Frame>
+
+            <!-- SECTION 2: Time Range Selector -->
+            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Button Text="1H" 
+                        Command="{Binding SelectTimeRangeCommand}"
+                        CommandParameter="1H" />
+                <Button Text="6H" 
+                        Command="{Binding SelectTimeRangeCommand}"
+                        CommandParameter="6H" />
+                <Button Text="24H" 
+                        Command="{Binding SelectTimeRangeCommand}"
+                        CommandParameter="24H" />
+                <Button Text="Session" 
+                        Command="{Binding SelectTimeRangeCommand}"
+                        CommandParameter="Session" />
+            </HorizontalStackLayout>
+
+            <!-- SECTION 3: Timeline Chart -->
+            <Frame BackgroundColor="#1A1A2E"
+                   CornerRadius="12"
+                   Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Charge History" 
+                           TextColor="#FFFFFF"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <microcharts:ChartView Chart="{Binding TimelineChart}"
+                                          HeightRequest="200"
+                                          HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- SECTION 4: Analytics Cards -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <Frame Grid.Row="0" Grid.Column="0" 
+                       BackgroundColor="#1A1A2E"
+                       CornerRadius="12"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="📉" FontSize="24" />
+                        <Label Text="{Binding DrainRateText}" 
+                               FontSize="20"
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                        <Label Text="Drain Rate" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="0" Grid.Column="1" 
+                       BackgroundColor="#1A1A2E"
+                       CornerRadius="12"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="⏱️" FontSize="24" />
+                        <Label Text="{Binding TimeRemainingText}" 
+                               FontSize="20"
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                        <Label Text="Time Remaining" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="1" Grid.Column="0" 
+                       BackgroundColor="#1A1A2E"
+                       CornerRadius="12"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="🌡️" FontSize="24" />
+                        <Label Text="{Binding PeakTempText}" 
+                               FontSize="20"
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                        <Label Text="Peak Temp" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="1" Grid.Column="1" 
+                       BackgroundColor="#1A1A2E"
+                       CornerRadius="12"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="🔌" FontSize="24" />
+                        <Label Text="{Binding ChargeCyclesText}" 
+                               FontSize="20"
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                        <Label Text="Charge Cycles" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- SECTION 5: Drain Rate Chart -->
+            <Frame BackgroundColor="#1A1A2E"
+                   CornerRadius="12"
+                   Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Drain Rate by Hour" 
+                           TextColor="#FFFFFF"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <microcharts:ChartView Chart="{Binding DrainRateChart}"
+                                          HeightRequest="150"
+                                          HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- SECTION 6: Events Log -->
+            <Frame BackgroundColor="#1A1A2E"
+                   CornerRadius="12"
+                   Padding="12">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Battery Events" 
+                           TextColor="#FFFFFF"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    
+                    <CollectionView ItemsSource="{Binding Events}"
+                                   HeightRequest="200"
+                                   EmptyView="No battery events yet. Events will appear as your battery changes.">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="mauisensorkit:BatteryEvent">
+                                <Grid ColumnDefinitions="Auto,*,Auto" 
+                                      Padding="8,4"
+                                      ColumnSpacing="12">
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding Icon}" 
+                                           FontSize="20" />
+                                    <VerticalStackLayout Grid.Column="1">
+                                        <Label Text="{Binding Description}" 
+                                               TextColor="#FFFFFF"
+                                               FontSize="14" />
+                                        <Label Text="{Binding ChargeAtEvent, StringFormat='Battery: {0:P0}'}" 
+                                               TextColor="#99FFFFFF"
+                                               FontSize="12" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" 
+                                           Text="{Binding Timestamp, StringFormat='{0:HH:mm}'}" 
+                                           TextColor="#99FFFFFF"
+                                           FontSize="12" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

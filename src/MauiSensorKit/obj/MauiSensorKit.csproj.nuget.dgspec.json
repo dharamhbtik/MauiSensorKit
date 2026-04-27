@@ -5,7 +5,7 @@
   },
   "projects": {
     "/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/MauiSensorKit.csproj": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "restore": {
         "projectUniqueName": "/Users/dkumar/CascadeProjects/MauiSensorKit/src/MauiSensorKit/MauiSensorKit.csproj",
         "projectName": "ZenithCode.MauiSensorKit",

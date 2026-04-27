@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="MauiSensorKit.SampleApp.Views.MapPage"
+             Title="Map"
+             BackgroundColor="#0F0F1A"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*, Auto">
+        
+        <!-- Map -->
+        <maps:Map x:Name="SensorMap"
+                  Grid.Row="0"
+                  MapType="{Binding CurrentMapType}"
+                  IsShowingUser="True"
+                  IsScrollEnabled="True"
+                  IsZoomEnabled="True"
+                  VerticalOptions="FillAndExpand" />
+
+        <!-- Session Info Pill (Top Left) -->
+        <Frame Grid.Row="0"
+               BackgroundColor="#CC1A1A2E"
+               CornerRadius="20"
+               Padding="12,8"
+               Margin="16,48,0,0"
+               HorizontalOptions="Start"
+               VerticalOptions="Start">
+            <HorizontalStackLayout Spacing="8">
+                <Ellipse WidthRequest="8" 
+                        HeightRequest="8"
+                        Fill="#FF4757"
+                        VerticalOptions="Center">
+                    <Ellipse.Behaviors>
+                        <toolkit:AnimationBehavior>
+                            <toolkit:AnimationBehavior.AnimationType>
+                                <toolkit:FadeAnimation />
+                            </toolkit:AnimationBehavior.AnimationType>
+                        </toolkit:AnimationBehavior>
+                    </Ellipse.Behaviors>
+                </Ellipse>
+                <Label Text="LIVE" 
+                       TextColor="#FFFFFF"
+                       FontSize="12"
+                       FontAttributes="Bold" />
+                <Label Text="|" TextColor="#6B6B8A" />
+                <Label Text="{Binding TotalDistanceKm, StringFormat='{0:F1} km'}" 
+                       TextColor="#FFFFFF"
+                       FontSize="12" />
+                <Label Text="|" TextColor="#6B6B8A" />
+                <Label Text="{Binding DurationString}" 
+                       TextColor="#FFFFFF"
+                       FontSize="12" />
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- Map Type Toggle (Top Right) -->
+        <Button Grid.Row="0"
+                Text="🗺️"
+                FontSize="20"
+                WidthRequest="44"
+                HeightRequest="44"
+                CornerRadius="22"
+                BackgroundColor="#CC1A1A2E"
+                Margin="0,48,16,0"
+                HorizontalOptions="End"
+                VerticalOptions="Start"
+                Command="{Binding ToggleMapTypeCommand}" />
+
+        <!-- Action FABs (Right side) -->
+        <VerticalStackLayout Grid.Row="0"
+                            Spacing="8"
+                            Margin="0,0,16,100"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center">
+            <Button Text="⊕"
+                   FontSize="24"
+                   WidthRequest="48"
+                   HeightRequest="48"
+                   CornerRadius="24"
+                   BackgroundColor="#CC1A1A2E"
+                   TextColor="#FFFFFF" />
+            <Button Text="⊖"
+                   FontSize="24"
+                   WidthRequest="48"
+                   HeightRequest="48"
+                   CornerRadius="24"
+                   BackgroundColor="#CC1A1A2E"
+                   TextColor="#FFFFFF" />
+            <Button Text="📤"
+                   FontSize="20"
+                   WidthRequest="48"
+                   HeightRequest="48"
+                   CornerRadius="24"
+                   BackgroundColor="#CC1A1A2E"
+                   Command="{Binding ShareRouteCommand}" />
+            <Button Text="◎"
+                   FontSize="20"
+                   WidthRequest="48"
+                   HeightRequest="48"
+                   CornerRadius="24"
+                   BackgroundColor="#CC6C63FF"
+                   Command="{Binding CenterOnCurrentLocationCommand}" />
+        </VerticalStackLayout>
+
+        <!-- Bottom Panel -->
+        <Frame Grid.Row="1"
+               BackgroundColor="#1A1A2E"
+               CornerRadius="20,20,0,0"
+               Padding="16"
+               HasShadow="True">
+            <VerticalStackLayout Spacing="12">
+                <!-- Drag Handle -->
+                <BoxView HeightRequest="4"
+                        WidthRequest="40"
+                        CornerRadius="2"
+                        Color="#3D3D5C"
+                        HorizontalOptions="Center" />
+
+                <!-- Activity Chip Row -->
+                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Frame BackgroundColor="#2A2A3E"
+                           CornerRadius="16"
+                           Padding="12,6">
+                        <HorizontalStackLayout Spacing="6">
+                            <Label Text="{Binding CurrentActivity, Converter={StaticResource ActivityToEmojiConverter}}" 
+                                   FontSize="16" />
+                            <Label Text="{Binding CurrentActivity}" 
+                                   TextColor="#FFFFFF"
+                                   FontSize="14" />
+                        </HorizontalStackLayout>
+                    </Frame>
+                    
+                    <Label Text="{Binding SpeedString}" 
+                           TextColor="#00C896"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    
+                    <Label Text="{Binding TotalDistanceKm, StringFormat='{0:F2} km'}" 
+                           TextColor="#6C63FF"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                    
+                    <Label Text="{Binding DurationString}" 
+                           TextColor="#99FFFFFF"
+                           FontSize="14"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <!-- Stats Grid -->
+                <Grid ColumnDefinitions="*,*,*" 
+                      RowDefinitions="Auto,Auto"
+                      RowSpacing="8"
+                      ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" HorizontalOptions="Center">
+                        <Label Text="Distance" TextColor="#99FFFFFF" FontSize="10" />
+                        <Label Text="{Binding TotalDistanceKm, StringFormat='{0:F1} km'}" 
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" HorizontalOptions="Center">
+                        <Label Text="Duration" TextColor="#99FFFFFF" FontSize="10" />
+                        <Label Text="{Binding DurationString}" 
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="2" HorizontalOptions="Center">
+                        <Label Text="Max Speed" TextColor="#99FFFFFF" FontSize="10" />
+                        <Label Text="{Binding CurrentSession.MaxSpeedMps, StringFormat='{0:F1} m/s', FallbackValue='--'}" 
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Start/Stop Button -->
+                <Button Text="{Binding IsTracking, Converter={StaticResource BoolToStartStopConverter}}"
+                       BackgroundColor="{Binding IsTracking, Converter={StaticResource BoolToColorConverter}}"
+                       TextColor="#FFFFFF"
+                       CornerRadius="24"
+                       HeightRequest="48"
+                       Command="{Binding StartTrackingCommand}"
+                       IsVisible="{Binding IsTracking, Converter={StaticResource InvertedBoolConverter}}" />
+                
+                <Button Text="Stop Recording"
+                       BackgroundColor="#FF4757"
+                       TextColor="#FFFFFF"
+                       CornerRadius="24"
+                       HeightRequest="48"
+                       Command="{Binding StopTrackingCommand}"
+                       IsVisible="{Binding IsTracking}" />
+            </VerticalStackLayout>
+        </Frame>
+
+    </Grid>
+
+</ContentPage>

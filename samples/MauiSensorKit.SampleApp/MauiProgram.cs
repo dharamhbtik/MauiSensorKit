@@ -4,6 +4,7 @@ using MauiSensorKit.SampleApp.ViewModels;
 using MauiSensorKit.SampleApp.Views;
 using MauiSensorKit.SampleApp.Services;
 using Microcharts.Maui;
+using CommunityToolkit.Maui;
 
 namespace MauiSensorKit.SampleApp;
 
@@ -14,6 +15,8 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMauiMaps()
+            .UseMauiCommunityToolkit()
             .UseMicrocharts()
             .UseMauiSensorKit(
                 options =>
@@ -73,6 +76,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<RouteDataStore>();
         builder.Services.AddSingleton<BatteryDataStore>();
         builder.Services.AddSingleton<BackgroundDataStoreConnector>();
+        
+        // Register session state service for cross-page data sharing
+        builder.Services.AddSingleton<SessionStateService>();
 
         // Register ViewModels - Singletons persist state across navigation
         builder.Services.AddTransient<SensorSelectionViewModel>();
@@ -81,6 +87,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<RouteTrackerViewModel>();
         builder.Services.AddSingleton<BatteryGraphViewModel>();
         builder.Services.AddSingleton<MotionSensorsViewModel>();
+        builder.Services.AddSingleton<BatteryViewModel>();
+        builder.Services.AddSingleton<MapViewModel>();
 
         // Register Views
         builder.Services.AddTransient<SensorSelectionPage>();
@@ -89,6 +97,8 @@ public static class MauiProgram
         builder.Services.AddTransient<RouteTrackerPage>();
         builder.Services.AddTransient<BatteryGraphPage>();
         builder.Services.AddTransient<MotionSensorsPage>();
+        builder.Services.AddTransient<BatteryPage>();
+        builder.Services.AddTransient<MapPage>();
 
         return builder.Build();
     }

@@ -3,30 +3,47 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:local="clr-namespace:MauiSensorKit.SampleApp.Views"
        x:Class="MauiSensorKit.SampleApp.AppShell"
-       Title="MauiSensorKit">
+       Title="MauiSensorKit"
+       BackgroundColor="#0F0F1A"
+       ForegroundColor="#FFFFFF"
+       TitleColor="#FFFFFF"
+       TabBarBackgroundColor="#1A1A2E"
+       TabBarForegroundColor="#6C63FF"
+       TabBarUnselectedColor="#6B6B8A"
+       TabBarTitleColor="#6C63FF"
+       NavBarIsVisible="False">
 
-    <FlyoutItem Title="Dashboard" Icon="dashboard">
-        <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" />
-    </FlyoutItem>
+    <!-- 5-Tab Bottom Navigation -->
+    <TabBar>
+        <!-- Tab 1: Setup/Sensor Configuration -->
+        <Tab Title="Setup" Icon="{FontImage FontFamily=MaterialIcons, Glyph=tune, Color=#6B6B8A, Size=24}">
+            <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" 
+                         Route="sensors" />
+        </Tab>
 
-    <FlyoutItem Title="Configure Sensors" Icon="settings">
-        <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" />
-    </FlyoutItem>
+        <!-- Tab 2: Activity Recognition -->
+        <Tab Title="Activity" Icon="{FontImage FontFamily=MaterialIcons, Glyph=directions_run, Color=#6B6B8A, Size=24}">
+            <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" 
+                         Route="activity" />
+        </Tab>
 
-    <FlyoutItem Title="Activity Recognition" Icon="activity">
-        <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" />
-    </FlyoutItem>
+        <!-- Tab 3: Live Route Map -->
+        <Tab Title="Map" Icon="{FontImage FontFamily=MaterialIcons, Glyph=map, Color=#6B6B8A, Size=24}">
+            <ShellContent ContentTemplate="{DataTemplate local:MapPage}" 
+                         Route="map" />
+        </Tab>
 
-    <FlyoutItem Title="Route Tracker" Icon="location">
-        <ShellContent ContentTemplate="{DataTemplate local:RouteTrackerPage}" />
-    </FlyoutItem>
+        <!-- Tab 4: Battery Analytics -->
+        <Tab Title="Battery" Icon="{FontImage FontFamily=MaterialIcons, Glyph=battery_full, Color=#6B6B8A, Size=24}">
+            <ShellContent ContentTemplate="{DataTemplate local:BatteryPage}" 
+                         Route="battery" />
+        </Tab>
 
-    <FlyoutItem Title="Battery Monitor" Icon="battery">
-        <ShellContent ContentTemplate="{DataTemplate local:BatteryGraphPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="Motion Sensors">
-        <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" />
-    </FlyoutItem>
+        <!-- Tab 5: Dashboard -->
+        <Tab Title="Dashboard" Icon="{FontImage FontFamily=MaterialIcons, Glyph=dashboard, Color=#6B6B8A, Size=24}">
+            <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" 
+                         Route="dashboard" />
+        </Tab>
+    </TabBar>
 
 </Shell>
