@@ -44,15 +44,12 @@ public static class PermissionHelper
         // Request permissions individually
         var locationStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
         await Permissions.RequestAsync<Permissions.Microphone>();
+        await Permissions.RequestAsync<Permissions.Camera>();
         
         if (OperatingSystem.IsAndroidVersionAtLeast(29))
         {
             await Permissions.RequestAsync<Permissions.Sensors>();
         }
-        
-        // Post notification permission (Android 13+) - declared in manifest
-        // Note: POST_NOTIFICATIONS is requested automatically on Android 13+
-        // when notifications are first shown, no explicit request needed
 
         return locationStatus == PermissionStatus.Granted;
     }

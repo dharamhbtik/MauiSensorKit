@@ -192,47 +192,56 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
     }
 
+    // Track motion state for better activity detection
+    private int _consecutiveMotionReadings = 0;
+    private int _consecutiveStationaryReadings = 0;
+    private DateTime _lastActivityChangeTime = DateTime.Now;
+    
     private void DetectActivityFromMotion()
     {
-        if (_accelHistory.Count < 20) return;
+        if (_accelHistory.Count < 10) return;
         
-        var recent = _accelHistory.ToArray().TakeLast(20).ToArray();
+        // Use last 10 readings for faster response
+        var recent = _accelHistory.ToArray().TakeLast(10).ToArray();
         var avgMagnitude = recent.Average();
         var variance = recent.Select(v => Math.Pow(v - avgMagnitude, 2)).Average();
         var stdDev = Math.Sqrt(variance);
         
         // Analyze gyroscope for rotation patterns
-        var gyroAvg = _gyroHistory.Count > 0 ? _gyroHistory.ToArray().TakeLast(20).Average() : 0;
+        var gyroAvg = _gyroHistory.Count > 0 ? _gyroHistory.ToArray().TakeLast(10).Average() : 0;
         
-        // Calculate step frequency
+        // Calculate step frequency - use step counter OR detect from accelerometer
         var timeSinceLastStep = DateTime.Now - _lastStepTime;
-        var isStepping = timeSinceLastStep.TotalSeconds < 2;
+        var hasStepCounter = timeSinceLastStep.TotalSeconds < 3;
+        
+        // Detect steps from accelerometer pattern (walking creates oscillating pattern)
+        var accelRange = recent.Max() - recent.Min();
+        var detectStepsFromAccel = accelRange > 1.5 && stdDev > 0.3;
+        var isStepping = hasStepCounter || detectStepsFromAccel;
         
         // Activity detection logic
         if (CrashDetected) return;
         
-        // Stationary detection (very low variance)
-        if (stdDev < 0.5 && !isStepping)
+        // Track motion state for hysteresis (prevents rapid switching)
+        var isMoving = stdDev > 0.8 || isStepping || accelRange > 2.0;
+        if (isMoving)
         {
-            if (CurrentActivity != "Sitting/Stationary")
-            {
-                UpdateActivity("Sitting/Stationary", "🪑", "90%");
-            }
-            return;
+            _consecutiveMotionReadings++;
+            _consecutiveStationaryReadings = 0;
+        }
+        else
+        {
+            _consecutiveStationaryReadings++;
+            _consecutiveMotionReadings = 0;
         }
         
-        // Walking detection (regular steps, moderate variance)
-        if (isStepping && stdDev > 0.5 && stdDev < 3 && avgMagnitude > 9.5 && avgMagnitude < 12)
-        {
-            if (CurrentActivity != "Walking")
-            {
-                UpdateActivity("Walking", "🚶", "85%");
-            }
-            return;
-        }
+        // Require 3 consecutive readings before changing to moving state
+        // Require 5 consecutive readings before changing to stationary state
+        var confirmedMoving = _consecutiveMotionReadings >= 3;
+        var confirmedStationary = _consecutiveStationaryReadings >= 5;
         
-        // Running detection (high variance, rapid steps)
-        if (isStepping && stdDev > 3 && avgMagnitude > 12)
+        // Running detection (high variance, high acceleration range)
+        if (confirmedMoving && (stdDev > 2.5 || accelRange > 6) && avgMagnitude > 11)
         {
             if (CurrentActivity != "Running")
             {
@@ -241,18 +250,27 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
             return;
         }
         
-        // Vehicle detection (smooth motion with consistent vibration)
-        if (stdDev > 1 && stdDev < 4 && gyroAvg < 0.5 && !isStepping)
+        // Walking detection (moderate variance, regular motion pattern)
+        if (confirmedMoving && stdDev > 1.0 && stdDev < 3.5 && accelRange > 2.0 && accelRange < 6)
         {
-            // Distinguish between different vehicle types based on vibration patterns
-            if (avgMagnitude > 10 && avgMagnitude < 11)
+            if (CurrentActivity != "Walking")
+            {
+                UpdateActivity("Walking", "🚶", "85%");
+            }
+            return;
+        }
+        
+        // Vehicle detection (smooth motion with consistent low-frequency vibration)
+        if (stdDev > 0.5 && stdDev < 2.5 && gyroAvg < 1.0 && !isStepping && confirmedMoving)
+        {
+            if (avgMagnitude > 9.8 && avgMagnitude < 11)
             {
                 if (CurrentActivity != "In Car/Bus")
                 {
                     UpdateActivity("In Car/Bus", "🚗", "75%");
                 }
             }
-            else if (avgMagnitude > 11)
+            else if (avgMagnitude >= 11 && avgMagnitude < 12)
             {
                 if (CurrentActivity != "On Train/Metro")
                 {
@@ -262,8 +280,8 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
             return;
         }
         
-        // Stairs detection (irregular pattern with elevation change)
-        if (isStepping && stdDev > 2 && stdDev < 5 && _gyroHistory.Count > 0)
+        // Stairs detection (irregular pattern with higher variance than walking)
+        if (confirmedMoving && isStepping && stdDev > 1.5 && stdDev < 4 && accelRange > 3)
         {
             if (CurrentActivity != "On Stairs")
             {
@@ -273,11 +291,21 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
         
         // Crowd detection (irregular high variance + noise)
-        if (stdDev > 4 && _lastNoiseLevel > 70 && !isStepping)
+        if (stdDev > 3 && _lastNoiseLevel > 65 && !isStepping && confirmedMoving)
         {
             if (CurrentActivity != "In Crowd")
             {
                 UpdateActivity("In Crowd", "👥", "72%");
+            }
+            return;
+        }
+        
+        // Stationary detection (low variance, no steps) - requires more confirmations
+        if (confirmedStationary && stdDev < 1.0 && !isStepping && accelRange < 1.5)
+        {
+            if (CurrentActivity != "Sitting/Stationary")
+            {
+                UpdateActivity("Sitting/Stationary", "🪑", "90%");
             }
             return;
         }

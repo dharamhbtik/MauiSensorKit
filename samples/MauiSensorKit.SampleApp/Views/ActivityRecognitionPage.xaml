@@ -2,8 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:MauiSensorKit.SampleApp.ViewModels"
+             xmlns:views="clr-namespace:MauiSensorKit.SampleApp.Views"
              x:Class="MauiSensorKit.SampleApp.Views.ActivityRecognitionPage"
              Title="Activity Recognition">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <views:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ScrollView>
         <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="15" RowSpacing="15">
@@ -107,16 +114,16 @@
             </Border>
 
             <!-- Supported Activities -->
-            <Grid Grid.Row="4" ColumnDefinitions="*,*,*" ColumnSpacing="10" RowSpacing="10">
-                <Label Grid.Column="0" Text="🚶 Walking" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="1" Text="🏃 Running" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="2" Text="🪑 Sitting" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="0" Text="🚗 Driving" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="1" Text="🚆 Train/Bus" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="2" Text="🪜 Stairs" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="0" Text="👥 Crowd" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="1" Text="🔊 High Noise" FontSize="11" HorizontalOptions="Center" />
-                <Label Grid.Column="2" Text="💥 Crash" FontSize="11" HorizontalOptions="Center" />
+            <Grid Grid.Row="4" ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="15">
+                <Label Grid.Row="0" Grid.Column="0" Text="🚶 Walking" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="0" Grid.Column="1" Text="🏃 Running" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="0" Grid.Column="2" Text="🪑 Sitting" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="1" Grid.Column="0" Text="🚗 In Car/Bus" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="1" Grid.Column="1" Text="🚆 On Train/Metro" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="1" Grid.Column="2" Text="🪜 On Stairs" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="2" Grid.Column="0" Text="👥 In Crowd" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="2" Grid.Column="1" Text="🔊 High Noise" FontSize="12" HorizontalOptions="Center" />
+                <Label Grid.Row="2" Grid.Column="2" Text="💥 Crash" FontSize="12" HorizontalOptions="Center" />
             </Grid>
 
         </Grid>

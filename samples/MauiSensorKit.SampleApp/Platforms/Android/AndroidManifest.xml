@@ -14,6 +14,9 @@
     <!-- Audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     
+    <!-- Camera for depth sensor and camera-based sensors -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    
     <!-- NFC -->
     <uses-permission android:name="android.permission.NFC" />
     
@@ -50,6 +53,8 @@
     <uses-feature android:name="android.hardware.location" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application 
         android:allowBackup="true" 
