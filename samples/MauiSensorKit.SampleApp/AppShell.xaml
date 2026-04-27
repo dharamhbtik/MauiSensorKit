@@ -13,36 +13,42 @@
        TabBarTitleColor="#6C63FF"
        NavBarIsVisible="False">
 
-    <!-- 5-Tab Bottom Navigation -->
+    <!-- 6-Tab Bottom Navigation -->
     <TabBar>
-        <!-- Tab 1: Setup/Sensor Configuration -->
-        <Tab Title="Setup" Icon="{FontImage FontFamily=MaterialIcons, Glyph=tune, Color=#6B6B8A, Size=24}">
-            <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" 
+        <!-- Tab 1: Dashboard (Home) -->
+        <Tab Title="Home" Icon="🏠">
+            <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" 
+                         Route="dashboard" />
+        </Tab>
+
+        <!-- Tab 2: Motion Sensors with Graphs -->
+        <Tab Title="Sensors" Icon="📊">
+            <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" 
                          Route="sensors" />
         </Tab>
 
-        <!-- Tab 2: Activity Recognition -->
-        <Tab Title="Activity" Icon="{FontImage FontFamily=MaterialIcons, Glyph=directions_run, Color=#6B6B8A, Size=24}">
+        <!-- Tab 3: Activity Recognition -->
+        <Tab Title="Activity" Icon="🏃">
             <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" 
                          Route="activity" />
         </Tab>
 
-        <!-- Tab 3: Live Route Map -->
-        <Tab Title="Map" Icon="{FontImage FontFamily=MaterialIcons, Glyph=map, Color=#6B6B8A, Size=24}">
+        <!-- Tab 4: Live Route Map -->
+        <Tab Title="Map" Icon="🗺️">
             <ShellContent ContentTemplate="{DataTemplate local:MapPage}" 
                          Route="map" />
         </Tab>
 
-        <!-- Tab 4: Battery Analytics -->
-        <Tab Title="Battery" Icon="{FontImage FontFamily=MaterialIcons, Glyph=battery_full, Color=#6B6B8A, Size=24}">
+        <!-- Tab 5: Battery Analytics -->
+        <Tab Title="Battery" Icon="🔋">
             <ShellContent ContentTemplate="{DataTemplate local:BatteryPage}" 
                          Route="battery" />
         </Tab>
 
-        <!-- Tab 5: Dashboard -->
-        <Tab Title="Dashboard" Icon="{FontImage FontFamily=MaterialIcons, Glyph=dashboard, Color=#6B6B8A, Size=24}">
-            <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" 
-                         Route="dashboard" />
+        <!-- Tab 6: Setup/Sensor Configuration -->
+        <Tab Title="Setup" Icon="⚙️">
+            <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" 
+                         Route="setup" />
         </Tab>
     </TabBar>
 

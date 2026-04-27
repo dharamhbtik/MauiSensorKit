@@ -13,41 +13,65 @@ using NetTopologySuite.Geometries;
 public partial class MapPage : ContentPage
 {
     private readonly MapViewModel _viewModel;
-    private readonly Map _map;
-    private readonly MemoryLayer _routeLayer;
+    private Map _map;
+    private MemoryLayer _routeLayer;
 
     public MapPage(MapViewModel viewModel)
     {
-        InitializeComponent();
-        _viewModel = viewModel;
-        BindingContext = viewModel;
+        try
+        {
+            InitializeComponent();
+            _viewModel = viewModel;
+            BindingContext = viewModel;
 
-        // Create OpenStreetMap with free tiles
-        _map = new Map();
-        _map.Layers.Add(OpenStreetMap.CreateTileLayer());
-        
-        // Initialize route layer
-        _routeLayer = new MemoryLayer();
-        _map.Layers.Add(_routeLayer);
-        
-        SensorMap.Map = _map;
-        
-        // Start at user location or default
-        var startMerc = SphericalMercator.FromLonLat(0, 0);
-        _map.Home = n => n.CenterOnAndZoomTo(new MPoint(startMerc.x, startMerc.y), 3);
-
-        // Subscribe to viewmodel changes
-        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            // Subscribe to viewmodel changes
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"MapPage constructor error: {ex.Message}");
+        }
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         
+        // Create OpenStreetMap with free tiles when page appears
+        InitializeMap();
+        
         // Initial setup
         if (_viewModel.CurrentPoints.Count > 0)
         {
             UpdateRouteOnMap();
+        }
+    }
+    
+    private void InitializeMap()
+    {
+        if (_map != null) return; // Already initialized
+        
+        try
+        {
+            _map = new Map();
+            _map.Layers.Add(OpenStreetMap.CreateTileLayer());
+            
+            // Initialize route layer
+            _routeLayer = new MemoryLayer();
+            _map.Layers.Add(_routeLayer);
+            
+            if (SensorMap != null)
+            {
+                SensorMap.Map = _map;
+                
+                // Start at user location or default
+                var startMerc = SphericalMercator.FromLonLat(0, 0);
+                _map.Home = n => n.CenterOnAndZoomTo(new MPoint(startMerc.x, startMerc.y), 3);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Map initialization error: {ex.Message}");
         }
     }
 

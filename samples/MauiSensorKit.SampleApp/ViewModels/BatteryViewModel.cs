@@ -73,8 +73,64 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
         _sensorService.ReadingRecorded += OnSensorReading;
         _batteryHistoryService.BatteryEventDetected += OnBatteryEvent;
         
+        // Initialize with current battery data immediately
+        _ = InitializeAsync();
+        
         // Refresh every 5 seconds
-        _refreshTimer = new System.Threading.Timer(_ => _ = RefreshData(), null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        _refreshTimer = new System.Threading.Timer(_ => _ = RefreshData(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+    }
+    
+    private async Task InitializeAsync()
+    {
+        try
+        {
+            // Start a session and load initial data
+            _currentSessionId = _sensorService.CurrentSessionId ?? Guid.NewGuid().ToString("N");
+            await _batteryHistoryService.StartSessionAsync(_currentSessionId);
+            
+            // Get current battery state from device
+            var currentBattery = await GetCurrentBatteryFromDeviceAsync();
+            if (currentBattery != null)
+            {
+                CurrentSnapshot = currentBattery;
+                UpdateHeroCard(currentBattery);
+            }
+            
+            // Load history
+            await RefreshData();
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't crash
+            EstimatedTimeString = "Battery info unavailable";
+        }
+    }
+    
+    private async Task<BatterySnapshot?> GetCurrentBatteryFromDeviceAsync()
+    {
+        try
+        {
+            var level = Microsoft.Maui.Devices.Battery.ChargeLevel;
+            var state = Microsoft.Maui.Devices.Battery.State;
+            var powerSource = Microsoft.Maui.Devices.Battery.PowerSource;
+            
+            return new BatterySnapshot
+            {
+                Timestamp = DateTimeOffset.Now,
+                ChargeLevel = level,
+                State = (BatteryState)state,
+                PowerSource = (BatteryPowerSource)powerSource,
+                VoltageVolts = null,
+                CurrentMilliAmps = null,
+                TemperatureCelsius = null,
+                EstimatedRemainingMinutes = null,
+                SessionId = _currentSessionId
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
     
     private void OnSensorReading(object? sender, SensorReading reading)
