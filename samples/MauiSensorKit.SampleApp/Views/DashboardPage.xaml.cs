@@ -5,6 +5,7 @@ namespace MauiSensorKit.SampleApp.Views;
 public partial class DashboardPage : ContentPage
 {
     private readonly DashboardViewModel _viewModel;
+    private bool _hasCheckedSensors = false;
 
     public DashboardPage(DashboardViewModel viewModel)
     {
@@ -13,9 +14,41 @@ public partial class DashboardPage : ContentPage
         BindingContext = viewModel;
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        
+        // Check if any sensors are enabled on first appearance
+        if (!_hasCheckedSensors)
+        {
+            _hasCheckedSensors = true;
+            await CheckAndRedirectIfNoSensorsAsync();
+        }
+    }
+
+    private async Task CheckAndRedirectIfNoSensorsAsync()
+    {
+        try
+        {
+            // Check if any sensor is enabled
+            var hasEnabledSensors = _viewModel.ConfiguredSensors.Any(s => s.IsEnabled);
+            
+            if (!hasEnabledSensors)
+            {
+                // Show alert and redirect to setup
+                await DisplayAlert("Setup Required", "No sensors are enabled. Please configure sensors first.", "OK");
+                await Shell.Current.GoToAsync("///setup");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error checking sensors: {ex.Message}");
+        }
+    }
+
     private async void OnConfigureClicked(object? sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("///sensorselection");
+        await Shell.Current.GoToAsync("///setup");
     }
 
 }

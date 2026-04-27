@@ -7,7 +7,8 @@
        BackgroundColor="#0F0F1A"
        ForegroundColor="#FFFFFF"
        TitleColor="#FFFFFF"
-       NavBarIsVisible="False"
+       NavBarIsVisible="True"
+       FlyoutBehavior="Flyout"
        FlyoutBackgroundColor="#1A1A2E"
        FlyoutWidth="280">
 
