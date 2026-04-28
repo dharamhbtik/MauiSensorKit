@@ -18,20 +18,33 @@ public partial class DashboardPage : ContentPage
     {
         base.OnAppearing();
         
-        // Check if any sensors are enabled on first appearance
-        if (!_hasCheckedSensors)
-        {
-            _hasCheckedSensors = true;
-            await CheckAndRedirectIfNoSensorsAsync();
-        }
+        // Reload sensors from preferences to get latest state
+        _viewModel.InitializeReadings();
+        
+        // Check if any sensors are enabled
+        await CheckAndRedirectIfNoSensorsAsync();
     }
 
     private async Task CheckAndRedirectIfNoSensorsAsync()
     {
         try
         {
-            // Check if any sensor is enabled
-            var hasEnabledSensors = _viewModel.ConfiguredSensors.Any(s => s.IsEnabled);
+            // Check preferences directly instead of relying on ViewModel collection
+            var enabledJson = Preferences.Default.Get<string?>("MauiSensorKit_EnabledSensors", null);
+            bool hasEnabledSensors = false;
+            
+            if (!string.IsNullOrEmpty(enabledJson))
+            {
+                try
+                {
+                    var enabled = System.Text.Json.JsonSerializer.Deserialize<Dictionary<MauiSensorKit.SensorType, bool>>(enabledJson);
+                    if (enabled != null)
+                    {
+                        hasEnabledSensors = enabled.Values.Any(v => v);
+                    }
+                }
+                catch { }
+            }
             
             if (!hasEnabledSensors)
             {

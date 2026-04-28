@@ -94,6 +94,9 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
             {
                 CurrentSnapshot = currentBattery;
                 UpdateHeroCard(currentBattery);
+                
+                // Add current snapshot to history for immediate display
+                await _batteryHistoryService.RecordSnapshotAsync(currentBattery);
             }
             
             // Load history
@@ -103,6 +106,7 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
         {
             // Log error but don't crash
             EstimatedTimeString = "Battery info unavailable";
+            System.Diagnostics.Debug.WriteLine($"BatteryViewModel init error: {ex.Message}");
         }
     }
     
@@ -221,17 +225,32 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
         
         Analytics = await _batteryHistoryService.ComputeAnalyticsAsync(_currentSessionId);
         
-        // Update metrics
+        // Update metrics with fallback values
         if (Analytics != null)
         {
-            DrainRateText = $"{Analytics.AverageDischargeRatePerHour:F1}% / hr";
+            DrainRateText = Analytics.AverageDischargeRatePerHour > 0 
+                ? $"{Analytics.AverageDischargeRatePerHour:F1}% / hr" 
+                : "Collecting...";
             
             var hours = Analytics.EstimatedFullDrainMinutes / 60 ?? 0;
             var mins = (Analytics.EstimatedFullDrainMinutes ?? 0) % 60;
-            TimeRemainingText = $"{hours:F0}h {mins:F0}m";
+            TimeRemainingText = Analytics.EstimatedFullDrainMinutes > 0 
+                ? $"{hours:F0}h {mins:F0}m" 
+                : "Calculating...";
             
-            PeakTempText = $"{Analytics.PeakTemperatureCelsius?.ToString("F0") ?? "--"}°C";
-            ChargeCyclesText = Analytics.ChargingCyclesInSession.ToString();
+            PeakTempText = Analytics.PeakTemperatureCelsius.HasValue 
+                ? $"{Analytics.PeakTemperatureCelsius.Value:F0}°C" 
+                : "--";
+            ChargeCyclesText = Analytics.ChargingCyclesInSession > 0 
+                ? Analytics.ChargingCyclesInSession.ToString() 
+                : "0";
+        }
+        else
+        {
+            DrainRateText = "Collecting...";
+            TimeRemainingText = "Calculating...";
+            PeakTempText = "--";
+            ChargeCyclesText = "0";
         }
         
         HasData = HistorySnapshots.Count > 0;

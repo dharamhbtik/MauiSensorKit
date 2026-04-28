@@ -196,10 +196,11 @@ public class SensorRecordingService : Service
             var channel = new NotificationChannel(
                 ChannelId,
                 GetString(Resource.String.channel_name) ?? "Sensor Recording",
-                NotificationImportance.Low)
+                NotificationImportance.Default)
             {
                 Description = GetString(Resource.String.channel_description) ?? "Background sensor data collection"
             };
+            channel.SetShowBadge(false);
 
             var notificationManager = GetSystemService(NotificationService) as NotificationManager;
             notificationManager?.CreateNotificationChannel(channel);
@@ -210,6 +211,7 @@ public class SensorRecordingService : Service
     {
         var context = global::Android.App.Application.Context;
         
+        // Intent to open app when notification is tapped
         var intent = new Intent(context, typeof(MainActivity));
         intent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTop);
         intent.SetAction(Intent.ActionMain);
@@ -221,13 +223,24 @@ public class SensorRecordingService : Service
             intent,
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
+        // Intent to stop recording from notification
+        var stopIntent = new Intent(context, typeof(SensorRecordingService));
+        stopIntent.SetAction(ActionStop);
+        var stopPendingIntent = PendingIntent.GetService(
+            context,
+            1,
+            stopIntent,
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+
         var builder = new NotificationCompat.Builder(this, ChannelId)
             .SetContentTitle(GetString(Resource.String.notification_title) ?? "Recording sensor data")
-            .SetContentText(GetString(Resource.String.notification_text) ?? "Sensor data is being collected")
+            .SetContentText(GetString(Resource.String.notification_text) ?? "Sensor data is being collected in background")
             .SetSmallIcon(Resource.Drawable.notification_icon)
             .SetOngoing(true)
             .SetContentIntent(pendingIntent)
-            .SetPriority(NotificationCompat.PriorityLow);
+            .SetPriority(NotificationCompat.PriorityDefault)
+            .SetCategory(NotificationCompat.CategoryService)
+            .AddAction(Resource.Drawable.notification_icon, "Stop", stopPendingIntent);
 
         return builder.Build();
     }

@@ -9,6 +9,16 @@ using MauiSensorKit.SampleApp.Services;
 namespace MauiSensorKit.SampleApp.ViewModels;
 
 /// <summary>
+/// Represents a sensor configuration item.
+/// </summary>
+public class SensorConfigItem
+{
+    public required SensorType SensorType { get; init; }
+    public required string Name { get; init; }
+    public required bool IsEnabled { get; init; }
+}
+
+/// <summary>
 /// Represents a live sensor reading item in the dashboard.
 /// </summary>
 public partial class SensorLiveReadingItem : ObservableObject
@@ -69,6 +79,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly RouteDataStore _routeDataStore;
     private readonly BatteryDataStore _batteryDataStore;
     private readonly ActivityRecognitionViewModel _activityRecognitionViewModel;
+    private readonly SessionStateService _sessionState;
     private readonly ILogger<DashboardViewModel> _logger;
 
     private Stopwatch? _stopwatch;
@@ -78,6 +89,11 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     /// Gets the collection of live sensor readings.
     /// </summary>
     public ObservableCollection<SensorLiveReadingItem> LiveReadings { get; } = new();
+
+    /// <summary>
+    /// Gets the configured sensors with their enabled status.
+    /// </summary>
+    public ObservableCollection<SensorConfigItem> ConfiguredSensors { get; } = new();
 
     /// <summary>
     /// Gets whether recording is active.
@@ -136,6 +152,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         BatteryDataStore batteryDataStore,
         BackgroundDataStoreConnector dataStoreConnector,
         ActivityRecognitionViewModel activityRecognitionViewModel,
+        SessionStateService sessionState,
         ILogger<DashboardViewModel> logger)
     {
         _sensorService = sensorService ?? throw new ArgumentNullException(nameof(sensorService));
@@ -144,6 +161,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _routeDataStore = routeDataStore ?? throw new ArgumentNullException(nameof(routeDataStore));
         _batteryDataStore = batteryDataStore ?? throw new ArgumentNullException(nameof(batteryDataStore));
         _activityRecognitionViewModel = activityRecognitionViewModel ?? throw new ArgumentNullException(nameof(activityRecognitionViewModel));
+        _sessionState = sessionState ?? throw new ArgumentNullException(nameof(sessionState));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         
         // DataStoreConnector is injected to ensure it's instantiated and listening to sensor readings
@@ -166,9 +184,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _ = UpdateLoopAsync(_updateCts.Token);
     }
 
-    private void InitializeReadings()
+    public void InitializeReadings()
     {
         LiveReadings.Clear();
+        ConfiguredSensors.Clear();
 
         // Load enabled sensors
         var enabledJson = Preferences.Default.Get<string?>("MauiSensorKit_EnabledSensors", null);
@@ -181,6 +200,15 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 {
                     foreach (var (sensor, isEnabled) in enabled)
                     {
+                        // Add to configured sensors list
+                        ConfiguredSensors.Add(new SensorConfigItem
+                        {
+                            SensorType = sensor,
+                            Name = sensor.ToString(),
+                            IsEnabled = isEnabled
+                        });
+
+                        // Add to live readings if enabled
                         if (isEnabled && !sensor.IsHardwareGated())
                         {
                             LiveReadings.Add(new SensorLiveReadingItem
@@ -276,6 +304,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             // Start new sessions in data stores for route/battery tracking
             _routeDataStore.StartNewSession(SessionId ?? Guid.NewGuid().ToString("N"));
             _batteryDataStore.StartNewSession(SessionId ?? Guid.NewGuid().ToString("N"));
+            
+            // Update session state service
+            _sessionState.CurrentSessionId = SessionId;
+            _sessionState.IsRecording = true;
             
             // Start activity recognition automatically
             await _activityRecognitionViewModel.StartMonitoringCommand.ExecuteAsync(null);

@@ -94,23 +94,6 @@ public static class MauiSensorKitServiceCollectionExtensions
         builder.Services.TryAddSingleton<IBatteryHistoryService, BatteryHistoryService>();
         builder.Services.TryAddSingleton<IRouteTrackingService, RouteTrackingService>();
 
-        // 5. Register Firebase services (optional - gracefully handles missing google-services.json)
-        builder.Services.AddSingleton<FirebaseAnalyticsService>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<FirebaseAnalyticsService>>();
-            var service = new FirebaseAnalyticsService(logger);
-            service.TryInitialize();
-            return service;
-        });
-        
-        builder.Services.AddSingleton<FirebaseCrashlyticsService>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<FirebaseCrashlyticsService>>();
-            var service = new FirebaseCrashlyticsService(logger);
-            service.TryInitialize();
-            return service;
-        });
-
         return builder;
     }
 

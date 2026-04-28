@@ -4,12 +4,12 @@
        xmlns:local="clr-namespace:MauiSensorKit.SampleApp.Views"
        x:Class="MauiSensorKit.SampleApp.AppShell"
        Title="SensorKit"
-       BackgroundColor="#0F0F1A"
-       ForegroundColor="#FFFFFF"
-       TitleColor="#FFFFFF"
+       BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F0F1A}"
+       ForegroundColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
+       TitleColor="{AppThemeBinding Light=#000000, Dark=#FFFFFF}"
        NavBarIsVisible="True"
        FlyoutBehavior="Flyout"
-       FlyoutBackgroundColor="#1A1A2E"
+       FlyoutBackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A2E}"
        FlyoutWidth="280">
 
     <!-- Flyout Header -->
@@ -28,28 +28,46 @@
         </Grid>
     </Shell.FlyoutHeader>
 
-    <!-- Flyout Items -->
-    <FlyoutItem Title="Dashboard" Icon="●">
+    <!-- Flyout Items with FontImage icons -->
+    <FlyoutItem Title="Dashboard">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🏠" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:DashboardPage}" Route="dashboard"/>
     </FlyoutItem>
 
-    <FlyoutItem Title="Motion Sensors" Icon="◆">
+    <FlyoutItem Title="Motion Sensors">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="📊" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:MotionSensorsPage}" Route="sensors"/>
     </FlyoutItem>
 
-    <FlyoutItem Title="Activity Recognition" Icon="▲">
+    <FlyoutItem Title="Activity Recognition">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🏃" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:ActivityRecognitionPage}" Route="activity"/>
     </FlyoutItem>
 
-    <FlyoutItem Title="Live Route Map" Icon="■">
+    <FlyoutItem Title="Live Route Map">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🗺️" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:MapPage}" Route="map"/>
     </FlyoutItem>
 
-    <FlyoutItem Title="Battery Analytics" Icon="◉">
+    <FlyoutItem Title="Battery Analytics">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="🔋" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:BatteryPage}" Route="battery"/>
     </FlyoutItem>
 
-    <FlyoutItem Title="Sensor Setup" Icon="✛">
+    <FlyoutItem Title="Sensor Setup">
+        <FlyoutItem.Icon>
+            <FontImageSource Glyph="⚙️" FontFamily="Emoji" Size="24"/>
+        </FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate local:SensorSelectionPage}" Route="setup"/>
     </FlyoutItem>
 
@@ -58,9 +76,9 @@
 
     <!-- Version Info Footer -->
     <Shell.FlyoutFooter>
-        <Grid BackgroundColor="#0F0F1A" Padding="20" HeightRequest="60">
+        <Grid BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#0F0F1A}" Padding="20" HeightRequest="60">
             <Label Text="v1.1.0 • ZenithCode" 
-                   TextColor="#6B6B8A" 
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#6B6B8A}" 
                    FontSize="11"
                    HorizontalOptions="Center"
                    VerticalOptions="Center"/>

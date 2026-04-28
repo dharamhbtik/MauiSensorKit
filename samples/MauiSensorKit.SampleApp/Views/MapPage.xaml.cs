@@ -10,18 +10,82 @@ public partial class MapPage : ContentPage
 
     public MapPage(MapViewModel viewModel)
     {
+        InitializeComponent();
+        _viewModel = viewModel;
+        BindingContext = viewModel;
+
+        // Subscribe to viewmodel changes
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        
+        // Wire up button click handlers
+        ZoomInButton.Clicked += OnZoomInClicked;
+        ZoomOutButton.Clicked += OnZoomOutClicked;
+        CenterButton.Clicked += OnCenterClicked;
+    }
+
+    private async void OnZoomInClicked(object? sender, EventArgs e)
+    {
+        _viewModel.ZoomInCommand.Execute(null);
+        await ExecuteMapZoom();
+    }
+
+    private async void OnZoomOutClicked(object? sender, EventArgs e)
+    {
+        _viewModel.ZoomOutCommand.Execute(null);
+        await ExecuteMapZoom();
+    }
+
+    private async void OnCenterClicked(object? sender, EventArgs e)
+    {
+        _viewModel.CenterOnCurrentLocationCommand.Execute(null);
+        await CenterMapOnCurrentLocation();
+    }
+
+    private async Task ExecuteMapZoom()
+    {
+        if (!_isMapInitialized || _viewModel.CurrentLocation == null) return;
+        
         try
         {
-            InitializeComponent();
-            _viewModel = viewModel;
-            BindingContext = viewModel;
-
-            // Subscribe to viewmodel changes
-            viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            var js = $"centerOn({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentZoom});";
+            await SensorMap.EvaluateJavaScriptAsync(js);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"MapPage constructor error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Zoom error: {ex.Message}");
+        }
+    }
+
+    private async Task CenterMapOnCurrentLocation()
+    {
+        if (!_isMapInitialized) return;
+        
+        try
+        {
+            // Try to get current location from ViewModel first
+            if (_viewModel.CurrentLocation != null)
+            {
+                var js = $"centerOn({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, 15);";
+                await SensorMap.EvaluateJavaScriptAsync(js);
+                return;
+            }
+            
+            // Otherwise try to get GPS location directly
+            var location = await Geolocation.GetLocationAsync(new GeolocationRequest
+            {
+                DesiredAccuracy = GeolocationAccuracy.Medium,
+                Timeout = TimeSpan.FromSeconds(5)
+            });
+            
+            if (location != null)
+            {
+                var js = $"centerOn({location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, 15);";
+                await SensorMap.EvaluateJavaScriptAsync(js);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Center map error: {ex.Message}");
         }
     }
 
@@ -29,19 +93,48 @@ public partial class MapPage : ContentPage
     {
         base.OnAppearing();
         
+        // Delay map initialization to ensure WebView is ready
         if (!_isMapInitialized)
         {
-            InitializeMap();
-            _isMapInitialized = true;
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Task.Delay(500);
+                InitializeMap();
+                _isMapInitialized = true;
+                
+                // Wait for map to be ready then center on location
+                await Task.Delay(1000);
+                await CenterMapOnCurrentLocation();
+            });
+        }
+        else
+        {
+            // Map already initialized, just center on location
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Task.Delay(500);
+                await CenterMapOnCurrentLocation();
+            });
         }
         
-        UpdateMapWithRoute();
+        // Delay route update to ensure map is initialized
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await Task.Delay(1500);
+            UpdateMapWithRoute();
+        });
     }
     
     private void InitializeMap()
     {
         try
         {
+            if (SensorMap == null)
+            {
+                System.Diagnostics.Debug.WriteLine("SensorMap is null");
+                return;
+            }
+            
             var html = GenerateOpenStreetMapHtml();
             SensorMap.Source = new HtmlWebViewSource { Html = html };
         }
@@ -70,37 +163,29 @@ public partial class MapPage : ContentPage
 <body>
     <div id='map'></div>
     <script>
-        // Initialize map centered on world view
         var map = L.map('map', { zoomControl: false }).setView([20, 0], 2);
-        
-        // Add OpenStreetMap tile layer (free, no API key needed)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '',
             maxZoom: 19
         }).addTo(map);
-        
-        // Store map reference for updates
         window.mapInstance = map;
         window.routeLayers = [];
         window.markers = [];
-        
-        // Function to clear route
+        window.currentLocationMarker = null;
         window.clearRoute = function() {
             window.routeLayers.forEach(function(layer) { map.removeLayer(layer); });
-            window.markers.forEach(function(marker) { map.removeLayer(marker); });
             window.routeLayers = [];
+        };
+        window.clearMarkers = function() {
+            window.markers.forEach(function(marker) { map.removeLayer(marker); });
             window.markers = [];
         };
-        
-        // Function to add route polyline
         window.addRoute = function(points, color) {
             if (points.length < 2) return;
             var latlngs = points.map(function(p) { return [p.lat, p.lng]; });
             var polyline = L.polyline(latlngs, { color: color, weight: 4, opacity: 0.8 }).addTo(map);
             window.routeLayers.push(polyline);
         };
-        
-        // Function to add marker
         window.addMarker = function(lat, lng, color) {
             var marker = L.circleMarker([lat, lng], {
                 radius: 8,
@@ -112,10 +197,23 @@ public partial class MapPage : ContentPage
             }).addTo(map);
             window.markers.push(marker);
         };
-        
-        // Function to center map
+        window.updateCurrentLocation = function(lat, lng) {
+            if (window.currentLocationMarker) {
+                window.currentLocationMarker.setLatLng([lat, lng]);
+            } else {
+                window.currentLocationMarker = L.circleMarker([lat, lng], {
+                    radius: 10,
+                    fillColor: '#00C896',
+                    color: '#fff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+            }
+        };
         window.centerOn = function(lat, lng, zoom) {
             map.setView([lat, lng], zoom);
+            window.updateCurrentLocation(lat, lng);
         };
     </script>
 </body>
@@ -125,63 +223,70 @@ public partial class MapPage : ContentPage
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MapViewModel.CurrentPoints) || e.PropertyName == nameof(MapViewModel.CurrentLocation))
+        if (e.PropertyName == nameof(MapViewModel.CurrentPoints) || 
+            e.PropertyName == nameof(MapViewModel.CurrentLocation) ||
+            e.PropertyName == nameof(MapViewModel.CurrentZoom) ||
+            e.PropertyName == nameof(MapViewModel.IsAutoFollow))
         {
-            MainThread.BeginInvokeOnMainThread(UpdateMapWithRoute);
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await Task.Delay(100);
+                UpdateMapWithRoute();
+            });
         }
     }
 
     private void UpdateMapWithRoute()
     {
-        if (_viewModel.CurrentPoints.Count == 0 || !_isMapInitialized) return;
+        if (!_isMapInitialized) return;
 
         try
         {
-            // Build JavaScript to update map
             var js = new StringBuilder();
             js.Append("clearRoute();");
+            js.Append("clearMarkers();");
             
-            // Group points by activity and draw segments
-            string currentActivity = _viewModel.CurrentPoints[0].ActivityAtPoint;
-            var currentSegment = new List<(double lat, double lng)>();
-            
-            for (int i = 0; i < _viewModel.CurrentPoints.Count; i++)
-            {
-                var point = _viewModel.CurrentPoints[i];
-                
-                if (point.ActivityAtPoint != currentActivity && currentSegment.Count > 1)
-                {
-                    // Draw segment with activity color
-                    var color = GetActivityColorHex(currentActivity);
-                    js.Append($"addRoute({SerializePoints(currentSegment)}, '{color}');");
-                    currentSegment.Clear();
-                    currentActivity = point.ActivityAtPoint;
-                }
-                
-                currentSegment.Add((point.Latitude, point.Longitude));
-            }
-            
-            // Draw final segment
-            if (currentSegment.Count > 1)
-            {
-                var color = GetActivityColorHex(currentActivity);
-                js.Append($"addRoute({SerializePoints(currentSegment)}, '{color}');");
-            }
-            
-            // Add start marker
             if (_viewModel.CurrentPoints.Count > 0)
             {
+                string currentActivity = _viewModel.CurrentPoints[0].ActivityAtPoint;
+                var currentSegment = new List<(double lat, double lng)>();
+                
+                for (int i = 0; i < _viewModel.CurrentPoints.Count; i++)
+                {
+                    var point = _viewModel.CurrentPoints[i];
+                    
+                    if (point.ActivityAtPoint != currentActivity && currentSegment.Count > 1)
+                    {
+                        var color = GetActivityColorHex(currentActivity);
+                        js.Append($"addRoute({SerializePoints(currentSegment)}, '{color}');");
+                        currentSegment.Clear();
+                        currentActivity = point.ActivityAtPoint;
+                    }
+                    
+                    currentSegment.Add((point.Latitude, point.Longitude));
+                }
+                
+                if (currentSegment.Count > 1)
+                {
+                    var color = GetActivityColorHex(currentActivity);
+                    js.Append($"addRoute({SerializePoints(currentSegment)}, '{color}');");
+                }
+                
                 var start = _viewModel.CurrentPoints[0];
                 js.Append($"addMarker({start.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {start.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, '#00C896');");
             }
             
-            // Center on current location if available
-            if (_viewModel.CurrentLocation != null && _viewModel.IsAutoFollow)
+            // Always update current location marker if we have location
+            if (_viewModel.CurrentLocation != null)
             {
-                js.Append($"centerOn({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, 15);");
+                js.Append($"updateCurrentLocation({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)});");
+                
+                if (_viewModel.IsAutoFollow)
+                {
+                    js.Append($"centerOn({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentZoom});");
+                }
             }
             
-            // Execute JavaScript
             SensorMap.EvaluateJavaScriptAsync(js.ToString());
         }
         catch (Exception ex)

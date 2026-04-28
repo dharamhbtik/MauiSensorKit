@@ -42,7 +42,7 @@ public static class MauiProgram
 
                     // Configure intervals
                     options.LocationInterval = TimeSpan.FromSeconds(5);
-                    options.BatteryPollingInterval = TimeSpan.FromSeconds(60); // 1 minute for graph
+                    options.BatteryPollingInterval = TimeSpan.FromSeconds(10); // 10 seconds for better graph resolution
                     options.MicrophonePollingInterval = TimeSpan.FromSeconds(1);
                     options.SlowSensorPollingInterval = TimeSpan.FromSeconds(10);
                     options.BatchSize = 100;

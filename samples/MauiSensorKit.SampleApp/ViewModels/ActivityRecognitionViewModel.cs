@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiSensorKit;
+using MauiSensorKit.SampleApp.Services;
 using System.Collections.ObjectModel;
 
 namespace MauiSensorKit.SampleApp.ViewModels;
@@ -8,6 +9,7 @@ namespace MauiSensorKit.SampleApp.ViewModels;
 public partial class ActivityRecognitionViewModel : ObservableObject, IDisposable
 {
     private readonly ISensorCollectionService _sensorService;
+    private readonly SessionStateService _sessionState;
     private readonly List<IDisposable> _subscriptions = new();
     
     [ObservableProperty]
@@ -57,17 +59,18 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     private string _confirmedActivity = "Unknown";
     private DateTime _activityStartTime = DateTime.Now;
     private int _consecutiveActivityReadings = 0;
-    private const int RequiredConfirmations = 15; // ~1.5 seconds at 10Hz sampling
-    private const int MinActivityDurationMs = 2000; // Minimum 2 seconds in activity before switching
+    private const int RequiredConfirmations = 5; // ~0.5 seconds at 10Hz sampling - faster detection
+    private const int MinActivityDurationMs = 500; // Minimum 0.5 seconds in activity before switching
     
     // Pattern analysis
     private List<double> _stepIntervals = new();
     private DateTime _lastPeakTime;
     private bool _wasAboveThreshold;
 
-    public ActivityRecognitionViewModel(ISensorCollectionService sensorService)
+    public ActivityRecognitionViewModel(ISensorCollectionService sensorService, SessionStateService sessionState)
     {
         _sensorService = sensorService;
+        _sessionState = sessionState;
     }
 
     [RelayCommand]
@@ -432,8 +435,9 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
         
         // PRIORITY 3: Walking (moderate energy + rhythmic + 1-2Hz frequency)
-        // Walking: stdDev 1-4, rhythmic, frequency 1-2Hz
-        if (isRhythmic && dominantFreq >= 1.0 && dominantFreq <= 2.0 && stdDev > 1.0 && stdDev < 5.0 && range > 2.0)
+        // Walking: stdDev 0.5-4, rhythmic, frequency 1-2Hz
+        // Relaxed thresholds to catch more walking patterns
+        if (isRhythmic && dominantFreq >= 0.8 && dominantFreq <= 2.5 && stdDev > 0.5 && stdDev < 5.0 && range > 1.5)
         {
             return "Walking";
         }
@@ -445,9 +449,10 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
             return "On Stairs";
         }
         
-        // PRIORITY 5: Vehicle detection
-        // Vehicle: smooth consistent vibration, low gyro variance, no steps
-        if (!hasRecentSteps && stdDev > 0.3 && stdDev < 1.5 && gyroStdDev < 0.5 && range < 3.0)
+        // PRIORITY 5: Vehicle detection - VERY STRICT
+        // Vehicle: very smooth consistent vibration, very low gyro variance, no steps, no rhythm
+        // Must be extremely stable to classify as vehicle
+        if (!hasRecentSteps && !isRhythmic && stdDev < 0.4 && gyroStdDev < 0.3 && range < 2.0)
         {
             if (avgMagnitude > 9.8 && avgMagnitude < 11)
             {
@@ -484,6 +489,13 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         if (stdDev > 0.15 && stdDev < 1.0)
         {
             return "Light Movement";
+        }
+        
+        // PRIORITY 10: Fallback to walking if there's any rhythmic motion
+        // This catches walking that doesn't meet strict thresholds
+        if (isRhythmic && stdDev > 0.3)
+        {
+            return "Walking";
         }
         
         // Don't change if can't classify clearly
@@ -548,6 +560,10 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         CurrentActivity = activity;
         ActivityIcon = icon;
         Confidence = confidence;
+        
+        // Update session state service
+        _sessionState.CurrentActivity = activity;
+        
         AddActivityEvent($"Activity: {activity}", icon);
     }
 

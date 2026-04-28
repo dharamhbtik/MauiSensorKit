@@ -44,10 +44,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    
-    <!-- Firebase Analytics (optional - only works if consumer app has google-services.json) -->
-    <PackageReference Include="Plugin.Firebase.Analytics" Version="3.0.0" />
-    <PackageReference Include="Plugin.Firebase.Crashlytics" Version="3.0.0" />
   </ItemGroup>
 
   <!-- Android Platform Support -->
