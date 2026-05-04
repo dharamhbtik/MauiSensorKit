@@ -71,7 +71,6 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     {
         _sensorService = sensorService;
         _sessionState = sessionState;
-        _logger = logger;
     }
 
     [RelayCommand]
@@ -95,8 +94,8 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
 
                 if (!success)
                 {
-                    _logger.LogWarning("Failed to start native activity recognition, falling back to sensor-based");
-                    StartSensorBasedMonitoring();
+                    System.Diagnostics.Debug.WriteLine("Failed to start native activity recognition, falling back to sensor-based");
+                    // StartSensorBasedMonitoring() method was removed, logic in StartAsync
                 }
             }
             else
@@ -107,9 +106,9 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
             StartSensorBasedMonitoring();
 #endif
 
-            // Subscribe to GPS updates for speed-based vehicle detection
-            _sensorService.ReadingRecorded += OnReadingRecorded;
-            _sensorService.StartLocationMonitoring(TimeSpan.FromSeconds(2));
+            // Fallback to sensor-based monitoring
+            _sensorService.ReadingRecorded += OnSensorReading;
+            await _sensorService.StartAsync();
 
             IsMonitoring = true;
             StatusMessage = "Monitoring active - analyzing patterns...";
@@ -124,18 +123,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
 
     private void StartSensorBasedMonitoring()
     {
-        // Fallback to sensor-based monitoring
-        _sensorService.ReadingRecorded += OnSensorReading;
-        _sensorService.StartBatteryMonitoring(TimeSpan.FromSeconds(30));
-        _sensorService.StartAccelerometerMonitoring(TimeSpan.FromMilliseconds(100));
-        _sensorService.StartGyroscopeMonitoring(TimeSpan.FromMilliseconds(100));
-        _sensorService.StartBarometerMonitoring(TimeSpan.FromSeconds(1));
-
-        var hasStepCounter = _sensorService.IsSensorAvailableAsync(SensorType.StepCounter).Result;
-        if (hasStepCounter)
-        {
-            _ = _sensorService.StartStepCounterMonitoringAsync(TimeSpan.FromSeconds(1));
-        }
+        // This method is now handled inline by StartAsync
     }
 
     [RelayCommand]
@@ -154,7 +142,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
 #endif
 
         // Stop sensors
-        _sensorService.ReadingRecorded -= OnReadingRecorded;
+        _sensorService.ReadingRecorded -= OnSensorReading;
         await _sensorService.StopAsync();
 
         // Clear subscriptions
@@ -189,6 +177,15 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
                 break;
             case SensorType.StepCounter when reading is StepCounterReading step:
                 UpdateStepCount(step);
+                break;
+            case SensorType.Location when reading is LocationReading loc:
+                if (loc.SpeedMps.HasValue)
+                {
+                    _currentSpeedMps = loc.SpeedMps.Value;
+#if ANDROID
+                    _activityRecognitionService?.UpdateGpsSpeed(_currentSpeedMps);
+#endif
+                }
                 break;
         }
     }
@@ -638,18 +635,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     // GPS speed tracking for enhanced vehicle detection
     private double _currentSpeedMps = 0;
 
-    private void OnReadingRecorded(object? sender, SensorReading reading)
-    {
-        if (reading is LocationReading loc && loc.SpeedMps.HasValue)
-        {
-            _currentSpeedMps = loc.SpeedMps.Value;
 
-#if ANDROID
-            // Update speed in activity recognition service for pro-level detection
-            _activityRecognitionService?.UpdateGpsSpeed(_currentSpeedMps);
-#endif
-        }
-    }
 
 #if ANDROID
     private Platforms.Android.Services.ActivityRecognitionService? _activityRecognitionService;
@@ -658,7 +644,7 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     /// <summary>
     /// Handle activity detected from native Android API
     /// </summary>
-    private void HandleNativeActivityDetected(string activity, int confidence)
+    internal void HandleNativeActivityDetected(string activity, int confidence)
     {
         // Apply state machine for stable activity reporting
         var now = DateTime.Now;

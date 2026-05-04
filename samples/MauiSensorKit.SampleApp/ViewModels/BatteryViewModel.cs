@@ -183,12 +183,7 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
                     snapshot.VoltageVolts = voltageMv / 1000.0;
                 }
 
-                // Current in microamperes, convert to milliamperes
-                int currentUa = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraCurrentAverage, -1);
-                if (currentUa >= 0)
-                {
-                    snapshot.CurrentMilliAmps = currentUa / 1000.0;
-                }
+                // Current in microamperes is usually queried via BatteryManager property rather than intent extra
 
                 // Temperature in tenths of degree Celsius
                 int tempTenths = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraTemperature, -1);
@@ -205,20 +200,26 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
                 int health = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraHealth, -1);
                 snapshot.Health = ConvertAndroidHealth(health);
 
-                // Battery Capacity from BatteryManager
+                // Battery Capacity and Current from BatteryManager
                 var batteryManager = context.GetSystemService(Android.Content.Context.BatteryService) as Android.OS.BatteryManager;
                 if (batteryManager != null)
                 {
-                    long remainingEnergy = batteryManager.GetLongProperty(Android.OS.BatteryManager.BatteryPropertyChargeCounter);
+                    long remainingEnergy = batteryManager.GetLongProperty((int)Android.OS.BatteryProperty.ChargeCounter);
                     if (remainingEnergy > 0)
                     {
                         snapshot.CapacityRemainingMWh = (int)(remainingEnergy / 1000);
                     }
 
-                    long remainingCapacity = batteryManager.GetLongProperty(Android.OS.BatteryManager.BatteryPropertyCapacity);
+                    long remainingCapacity = batteryManager.GetLongProperty((int)Android.OS.BatteryProperty.Capacity);
                     if (remainingCapacity > 0)
                     {
                         snapshot.BatteryCapacityPercent = remainingCapacity / 100.0;
+                    }
+                    
+                    long currentUa = batteryManager.GetLongProperty((int)Android.OS.BatteryProperty.CurrentNow);
+                    if (currentUa != 0 && currentUa != long.MinValue)
+                    {
+                        snapshot.CurrentMilliAmps = currentUa / 1000.0;
                     }
                 }
 
@@ -233,7 +234,8 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
 
     private static BatteryHealth ConvertAndroidHealth(int health)
     {
-        return health switch
+        var androidHealth = (Android.OS.BatteryHealth)health;
+        return androidHealth switch
         {
             Android.OS.BatteryHealth.Good => BatteryHealth.Good,
             Android.OS.BatteryHealth.Cold => BatteryHealth.Cold,

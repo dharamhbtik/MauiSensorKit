@@ -87,15 +87,7 @@ public sealed record BatteryReading : SensorReading
     /// </summary>
     public double? BatteryCapacityPercent { get; init; }
 
-    /// <summary>
-    /// Gets the session identifier for grouping readings.
-    /// </summary>
-    public string SessionId { get; init; } = string.Empty;
 
-    /// <summary>
-    /// Gets a value indicating whether this reading was simulated.
-    /// </summary>
-    public bool IsSimulated { get; init; }
 
     /// <summary>
     /// Converts to a BatterySnapshot for storage.

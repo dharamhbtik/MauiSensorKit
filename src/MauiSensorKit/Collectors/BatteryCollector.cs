@@ -64,7 +64,7 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
                         await Task.Delay(Options.BatteryPollingInterval, _cancellationTokenSource.Token);
                         EmitBatteryReading();
                     }
-                    catch (OperationCanceledException)
+                    catch (global::System.OperationCanceledException)
                     {
                         break;
                     }
@@ -140,7 +140,7 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
 
 #if ANDROID
             // Get additional battery information from Android BatteryManager
-            FillAndroidBatteryInfo(reading);
+            reading = FillAndroidBatteryInfo(reading);
 #endif
 
             RaiseReading(reading);
@@ -152,84 +152,114 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
     }
 
 #if ANDROID
-    private void FillAndroidBatteryInfo(BatteryReading reading)
+    private BatteryReading FillAndroidBatteryInfo(BatteryReading reading)
     {
         try
         {
             var context = global::Android.App.Application.Context;
-            if (context == null) return;
+            if (context == null) return reading;
 
             var intentFilter = new IntentFilter(Intent.ActionBatteryChanged);
             var batteryStatus = context.RegisterReceiver(null, intentFilter);
 
             if (batteryStatus != null)
             {
+                double? voltageVolts = reading.VoltageVolts;
+                double? currentMilliAmps = reading.CurrentMilliAmps;
+                double? temperatureCelsius = reading.TemperatureCelsius;
+                string technology = reading.Technology;
+                BatteryHealth health = reading.Health;
+                int? capacityRemainingMWh = reading.CapacityRemainingMWh;
+                double? batteryCapacityPercent = reading.BatteryCapacityPercent;
+
                 // Voltage in millivolts, convert to volts
                 int voltageMv = batteryStatus.GetIntExtra(BatteryManager.ExtraVoltage, -1);
                 if (voltageMv > 0)
                 {
-                    reading.VoltageVolts = voltageMv / 1000.0;
+                    voltageVolts = voltageMv / 1000.0;
                 }
 
-                // Current in microamperes, convert to milliamperes
-                int currentUa = batteryStatus.GetIntExtra(BatteryManager.ExtraCurrentAverage, -1);
-                if (currentUa >= 0)
-                {
-                    reading.CurrentMilliAmps = currentUa / 1000.0;
-                }
+                // Current in microamperes is usually queried via BatteryManager property rather than intent extra
+                // We will handle it with batteryManager below
 
                 // Temperature in tenths of degree Celsius
                 int tempTenths = batteryStatus.GetIntExtra(BatteryManager.ExtraTemperature, -1);
                 if (tempTenths > 0)
                 {
-                    reading.TemperatureCelsius = tempTenths / 10.0;
+                    temperatureCelsius = tempTenths / 10.0;
                 }
 
                 // Technology (Li-ion, Li-poly, etc.)
-                string? technology = batteryStatus.GetStringExtra(BatteryManager.ExtraTechnology);
-                reading.Technology = technology ?? "Unknown";
+                string? techStr = batteryStatus.GetStringExtra(BatteryManager.ExtraTechnology);
+                if (techStr != null)
+                {
+                    technology = techStr;
+                }
 
                 // Health
-                int health = batteryStatus.GetIntExtra(BatteryManager.ExtraHealth, -1);
-                reading.Health = ConvertBatteryHealth(health);
+                int healthInt = batteryStatus.GetIntExtra(BatteryManager.ExtraHealth, -1);
+                health = ConvertBatteryHealth(healthInt);
 
-                // Battery Capacity (if available)
+                // Battery Capacity and Current (if available)
                 var batteryManager = context.GetSystemService(Context.BatteryService) as BatteryManager;
                 if (batteryManager != null)
                 {
-                    long remainingEnergy = batteryManager.GetLongProperty(BatteryManager.BatteryPropertyChargeCounter);
+                    long remainingEnergy = batteryManager.GetLongProperty((int)global::Android.OS.BatteryProperty.ChargeCounter);
                     if (remainingEnergy > 0)
                     {
-                        reading.CapacityRemainingMWh = (int)(remainingEnergy / 1000); // Convert to mWh
+                        capacityRemainingMWh = (int)(remainingEnergy / 1000); // Convert to mWh
                     }
 
-                    long remainingCapacity = batteryManager.GetLongProperty(BatteryManager.BatteryPropertyCapacity);
+                    long remainingCapacity = batteryManager.GetLongProperty((int)global::Android.OS.BatteryProperty.Capacity);
                     if (remainingCapacity > 0)
                     {
-                        reading.BatteryCapacityPercent = remainingCapacity / 100.0;
+                        batteryCapacityPercent = remainingCapacity / 100.0;
+                    }
+
+                    long currentUa = batteryManager.GetLongProperty((int)global::Android.OS.BatteryProperty.CurrentNow);
+                    if (currentUa != 0 && currentUa != long.MinValue) // 0 could be valid but often means unavailable if not charging/discharging
+                    {
+                        // Some devices report inverted, some report positive for charging
+                        currentMilliAmps = currentUa / 1000.0;
                     }
                 }
 
+                var updatedReading = reading with
+                {
+                    VoltageVolts = voltageVolts,
+                    CurrentMilliAmps = currentMilliAmps,
+                    TemperatureCelsius = temperatureCelsius,
+                    Technology = technology,
+                    Health = health,
+                    CapacityRemainingMWh = capacityRemainingMWh,
+                    BatteryCapacityPercent = batteryCapacityPercent
+                };
+
                 Logger.LogDebug("Android battery info collected: Voltage={Voltage}V, Current={Current}mA, Temp={Temp}C",
-                    reading.VoltageVolts, reading.CurrentMilliAmps, reading.TemperatureCelsius);
+                    updatedReading.VoltageVolts, updatedReading.CurrentMilliAmps, updatedReading.TemperatureCelsius);
+                    
+                return updatedReading;
             }
         }
         catch (Exception ex)
         {
             Logger.LogWarning(ex, "Error getting Android battery info");
         }
+        
+        return reading;
     }
 
     private static BatteryHealth ConvertBatteryHealth(int health)
     {
-        return health switch
+        var androidHealth = (global::Android.OS.BatteryHealth)health;
+        return androidHealth switch
         {
-            BatteryHealth.Good => BatteryHealth.Good,
-            BatteryHealth.Cold => BatteryHealth.Cold,
-            BatteryHealth.Dead => BatteryHealth.Dead,
-            BatteryHealth.Overheat => BatteryHealth.Overheat,
-            BatteryHealth.OverVoltage => BatteryHealth.OverVoltage,
-            BatteryHealth.UnspecifiedFailure => BatteryHealth.UnspecifiedFailure,
+            global::Android.OS.BatteryHealth.Good => BatteryHealth.Good,
+            global::Android.OS.BatteryHealth.Cold => BatteryHealth.Cold,
+            global::Android.OS.BatteryHealth.Dead => BatteryHealth.Dead,
+            global::Android.OS.BatteryHealth.Overheat => BatteryHealth.Overheat,
+            global::Android.OS.BatteryHealth.OverVoltage => BatteryHealth.OverVoltage,
+            global::Android.OS.BatteryHealth.UnspecifiedFailure => BatteryHealth.UnspecifiedFailure,
             _ => BatteryHealth.Unknown
         };
     }
