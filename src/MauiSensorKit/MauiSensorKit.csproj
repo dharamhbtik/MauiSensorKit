@@ -16,7 +16,7 @@
     
     <!-- NuGet Package Metadata -->
     <PackageId>ZenithCode.MauiSensorKit</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Dharmendra Kumar</Authors>
     <Company>ZenithCode Studio</Company>
     <Description>A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.</Description>

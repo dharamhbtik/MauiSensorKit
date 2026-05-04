@@ -5,22 +5,33 @@
 
 A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sensor data. Supports 20+ sensors including accelerometer, gyroscope, GPS, battery, microphone, NFC, UWB, and more.
 
+## ✨ What's New in v1.2.0
+
+- **🔥 Firebase Upload**: Upload sensor batches directly to Firebase Realtime Database — no Firebase SDK dependency required.
+- **📦 GZip Compression**: Payloads are now compressed with `GZipStream` before upload, significantly reducing bandwidth usage.
+- **🎙️ Automated Background Recording**: New `ISensorRecordingService` — configure which sensors to record, set a batch interval, and the SDK handles buffering, batching, and flushing to local storage automatically.
+- **📤 Flexible Upload Targets**: Choose between `CustomApi` (HTTP POST to your endpoint) or `Firebase` (REST API PUT to your Realtime Database).
+- **💾 Built-in Export**: Export all local recordings as a compressed ZIP or human-readable text file directly through the recording service.
+- **🔋 Battery Collector Modernized**: Android battery hardware metrics (voltage, current, temperature, health) now use the modern `BatteryProperty` API instead of deprecated intent extras.
+
 ## Features
 
 - **25+ Sensors**: Accelerometer, Gyroscope, Magnetometer, GPS, Barometer, Battery, Microphone, NFC, UWB, and more
-- **Background Recording**: Continue collecting data even when app is in background (with wake lock and battery optimization)
+- **Automated Background Recording**: Configure sensors and batch interval — the SDK captures, buffers, and stores data automatically
 - **Route Tracking**: Real-time GPS route visualization with interactive map
-- **Battery Monitoring**: Battery level tracking with graph visualization over time
-- **Local Storage**: Save recordings to local device storage
+- **Battery Monitoring**: Battery level tracking with graph visualization over time, including hardware metrics (voltage, current, temperature, health) on Android
+- **Local Storage**: Save recordings to local device storage with manifest tracking
 - **Export Options**: Export as formatted text file or compressed ZIP archive
-- **Auto Upload**: Automatic upload to your API endpoint with retry logic
+- **Firebase Upload**: Upload sensor data directly to Firebase Realtime Database (no SDK dependency)
+- **Custom API Upload**: Automatic upload to your API endpoint with retry logic, exponential backoff, and GZip compression
+- **Offline-First**: Data is always saved locally first; uploads happen when connectivity is available
 - **Activity Recognition**: Detect user activities (walking, running, driving, etc.)
 - **Cross-Platform**: Built on `Microsoft.Maui.Devices.Sensors` for native cross-platform support across Android, iOS, Windows, and MacCatalyst where available.
 
 ## Installation
 
 ```bash
-dotnet add package MauiSensorKit
+dotnet add package ZenithCode.MauiSensorKit
 ```
 
 ## Quick Start
@@ -89,12 +100,156 @@ public class MyViewModel
 }
 ```
 
+## Automated Background Recording (New in v1.2.0)
+
+The `ISensorRecordingService` handles the entire capture lifecycle — subscribing to sensors, buffering readings in memory, and flushing them to batched JSON files on a configurable timer.
+
+### Setup
+
+```csharp
+builder.UseMauiSensorKit(
+    configureOptions: options =>
+    {
+        options.Enable(SensorType.Accelerometer);
+        options.Enable(SensorType.Gyroscope);
+        options.Enable(SensorType.Battery);
+        options.Enable(SensorType.Location);
+    },
+    configureRecording: recording =>
+    {
+        // Which sensors to buffer for batch recording
+        recording.SensorsToRecord = new HashSet<SensorType>
+        {
+            SensorType.Accelerometer,
+            SensorType.Gyroscope,
+            SensorType.Battery
+        };
+        
+        // Flush buffer to local storage every 60 seconds
+        recording.BatchInterval = TimeSpan.FromSeconds(60);
+    });
+```
+
+### Usage
+
+```csharp
+public class RecordingViewModel
+{
+    private readonly ISensorRecordingService _recordingService;
+    
+    public RecordingViewModel(ISensorRecordingService recordingService)
+    {
+        _recordingService = recordingService;
+    }
+    
+    public async Task StartRecording()
+    {
+        // Starts sensor collection + automatic background batching
+        await _recordingService.StartRecordingAsync();
+    }
+    
+    public async Task StopRecording()
+    {
+        // Stops sensors, flushes remaining buffer to storage
+        await _recordingService.StopRecordingAsync();
+    }
+    
+    public async Task ExportData()
+    {
+        // Export all locally stored batches as a ZIP
+        string zipPath = await _recordingService.ExportRecordingsToZipAsync();
+        
+        // Or export as a human-readable text summary
+        string textPath = await _recordingService.ExportRecordingsToTextAsync();
+    }
+}
+```
+
+## Upload Targets (New in v1.2.0)
+
+### Option A: Custom API
+
+Upload to your own REST API endpoint via HTTP POST:
+
+```csharp
+builder.UseMauiSensorKit(
+    configureUpload: upload =>
+    {
+        upload.EnableUpload = true;
+        upload.Target = UploadTarget.CustomApi;
+        upload.ApiEndpointUrl = "https://your-api.example.com/api/sensor-data";
+        upload.Headers["Authorization"] = "Bearer YOUR_API_KEY";
+        upload.EnableCompression = true;  // GZip the payload
+        upload.UploadOnlyOnWifi = false;
+        upload.DeleteAfterUpload = true;
+    });
+```
+
+### Option B: Firebase Realtime Database
+
+Upload directly to Firebase without requiring the Firebase SDK:
+
+```csharp
+builder.UseMauiSensorKit(
+    configureUpload: upload =>
+    {
+        upload.EnableUpload = true;
+        upload.Target = UploadTarget.Firebase;
+        upload.FirebaseDatabaseUrl = "https://your-project-id.firebaseio.com";
+        upload.FirebaseAuthToken = "YOUR_FIREBASE_AUTH_TOKEN"; // optional
+        upload.EnableCompression = true;
+        upload.UploadOnlyOnWifi = true;
+    });
+```
+
+Data is written to: `{FirebaseDatabaseUrl}/sensor_batches/{sessionId}_{batchId}.json`
+
+### Option C: Local Only (No Upload)
+
+If no upload target is configured, all data is saved locally on the device. Use the export API to let your users download their data:
+
+```csharp
+builder.UseMauiSensorKit(
+    configureUpload: upload =>
+    {
+        upload.EnableUpload = false; // default
+    },
+    configureRecording: recording =>
+    {
+        recording.SensorsToRecord = new HashSet<SensorType>
+        {
+            SensorType.Accelerometer,
+            SensorType.Battery
+        };
+        recording.BatchInterval = TimeSpan.FromSeconds(60);
+    });
+
+// Later, export via ISensorRecordingService
+var zipPath = await recordingService.ExportRecordingsToZipAsync();
+await Share.Default.RequestAsync(new ShareFileRequest
+{
+    Title = "Sensor Recordings",
+    File = new ShareFile(zipPath)
+});
+```
+
+### Offline-First Architecture
+
+Regardless of the upload target, the SDK **always saves data locally first**. The background `UploadBackgroundService` runs on a timer and:
+
+1. Checks connectivity (respects `UploadOnlyOnWifi`).
+2. Loads pending (un-uploaded) batches from the local manifest.
+3. Uploads each batch with retry + exponential backoff.
+4. Marks batches as uploaded (and optionally deletes them).
+
+If the device goes offline, batches accumulate locally and are uploaded when connectivity is restored.
+
 ## Complete Integration Guide
 
 ### Step 1: Install the Package
 
 ```bash
-dotnet add package MauiSensorKit
+dotnet add package ZenithCode.MauiSensorKit
 ```
 
 ### Step 2: Configure Platform Permissions
@@ -180,11 +335,22 @@ public static MauiApp CreateMauiApp()
             upload =>
             {
                 upload.EnableUpload = true;
+                upload.Target = UploadTarget.CustomApi;
                 upload.ApiEndpointUrl = "https://your-api.example.com/api/sensor-data";
                 upload.Headers["Authorization"] = "Bearer YOUR_API_KEY";
                 upload.UploadOnlyOnWifi = false;
                 upload.DeleteAfterUpload = true;
                 upload.EnableCompression = true;
+            },
+            recording =>
+            {
+                recording.SensorsToRecord = new HashSet<SensorType>
+                {
+                    SensorType.Accelerometer,
+                    SensorType.Gyroscope,
+                    SensorType.Battery
+                };
+                recording.BatchInterval = TimeSpan.FromSeconds(60);
             });
     
     return builder.Build();
@@ -276,30 +442,25 @@ public async Task DetectActivity()
 ```csharp
 public class ExportService
 {
-    private readonly ILocalStorageService _storage;
+    private readonly ISensorRecordingService _recording;
     
-    public ExportService(ILocalStorageService storage)
+    public ExportService(ISensorRecordingService recording)
     {
-        _storage = storage;
-    }
-    
-    public async Task<string> ExportToText()
-    {
-        var path = await _storage.ExportToTextFileAsync();
-        Console.WriteLine($"Text export: {path}");
-        return path;
+        _recording = recording;
     }
     
     public async Task<string> ExportToZip()
     {
-        var path = await _storage.ExportToZipAsync();
+        var path = await _recording.ExportRecordingsToZipAsync();
         Console.WriteLine($"ZIP export: {path}");
         return path;
     }
     
-    public string GetExportLocation()
+    public async Task<string> ExportToText()
     {
-        return _storage.GetExportDirectoryPath();
+        var path = await _recording.ExportRecordingsToTextAsync();
+        Console.WriteLine($"Text export: {path}");
+        return path;
     }
 }
 ```
@@ -342,7 +503,7 @@ The service shows a persistent notification while recording in background.
 | NFC | ✓ | ✓ | Tag detection events |
 | UWB | ✓ (12+) | ✓ | Ultra-wideband ranging |
 | **Device Sensors** |
-| Battery | ✓ | ✓ | Level/State/Source |
+| Battery | ✓ | ✓ | Level/State/Source + Voltage/Current/Temperature/Health on Android |
 | Battery Temperature | ✓ | ✗ | Android only |
 | Hall Sensor | ✓ | ✗ | Magnetic cover detection (dock events) |
 
@@ -384,14 +545,25 @@ These sensors require dedicated hardware APIs beyond MAUI Essentials scope:
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `EnableUpload` | `bool` | `false` | Enable automatic upload |
-| `ApiEndpointUrl` | `string?` | `null` | API endpoint for uploads |
-| `Headers` | `Dictionary<string, string>` | Empty | Custom HTTP headers |
+| `Target` | `UploadTarget` | `CustomApi` | Upload destination: `CustomApi` or `Firebase` |
+| `ApiEndpointUrl` | `string?` | `null` | API endpoint for custom API uploads |
+| `FirebaseDatabaseUrl` | `string?` | `null` | Firebase Realtime Database URL (e.g., `https://project.firebaseio.com`) |
+| `FirebaseAuthToken` | `string?` | `null` | Optional Firebase auth token |
+| `Headers` | `Dictionary<string, string>` | Empty | Custom HTTP headers (for custom API) |
 | `UploadRetryInterval` | `TimeSpan` | 60s | Time between upload attempts |
 | `MaxRetryAttempts` | `int` | 3 | Max retries per batch |
 | `UploadOnlyOnWifi` | `bool` | `false` | Only upload on WiFi |
 | `DeleteAfterUpload` | `bool` | `true` | Delete local files after upload |
 | `UploadTimeout` | `TimeSpan` | 30s | HTTP timeout |
-| `EnableCompression` | `bool` | `true` | Compress upload data |
+| `EnableCompression` | `bool` | `true` | GZip compress upload payloads |
+
+### SensorRecordingOptions
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `AutoStart` | `bool` | `false` | Auto-start recording on service creation |
+| `SensorsToRecord` | `HashSet<SensorType>` | Accelerometer, Gyroscope, Battery | Which sensors to buffer and batch |
+| `BatchInterval` | `TimeSpan` | 60s | How often to flush the in-memory buffer to local storage |
 
 ## API Upload Payload
 
@@ -427,6 +599,10 @@ Batches are sent as:
 }
 ```
 
+When `EnableCompression` is `true`, the JSON payload is GZip-compressed and sent with `Content-Encoding: gzip` header.
+
+For Firebase, data is written via `PUT` to `{FirebaseDatabaseUrl}/sensor_batches/{sessionId}_{batchId}.json`.
+
 ## Sample Application Features
 
 The included sample app (`samples/MauiSensorKit.SampleApp`) demonstrates all SDK capabilities:
@@ -447,6 +623,7 @@ The included sample app (`samples/MauiSensorKit.SampleApp`) demonstrates all SDK
 - Line chart visualization of battery percentage over time
 - Shows last 60 readings (~1 hour at default interval)
 - Current charge level, state (Charging/Discharging), power source
+- Hardware metrics on Android: voltage, current draw, temperature, health status
 - Updates every 5 seconds during recording
 
 ### Activity Recognition
@@ -529,8 +706,9 @@ MauiSensorKit/
 ├── src/
 │   └── MauiSensorKit/           # Main library
 │       ├── Collectors/          # Sensor data collectors
+│       ├── Configuration/       # Options classes (SensorKitOptions, UploadOptions, RecordingOptions)
 │       ├── Models/              # Data models
-│       ├── Services/            # Storage and upload services
+│       ├── Services/            # Storage, upload, and recording services
 │       └── Enums/               # Enums and types
 ├── samples/
 │   └── MauiSensorKit.SampleApp/ # Sample application
@@ -550,8 +728,8 @@ To publish a new version:
 ```bash
 # Update version in src/MauiSensorKit/MauiSensorKit.csproj
 git add .
-git commit -m "Version bump"
-git tag -a v1.0.1 -m "Release v1.0.1"
+git commit -m "Release v1.2.0"
+git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin main --tags
 ```
 
