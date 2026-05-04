@@ -25,6 +25,10 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
     private readonly Queue<ChartEntry> _linearX = new(50);
     private readonly Queue<ChartEntry> _linearY = new(50);
     private readonly Queue<ChartEntry> _linearZ = new(50);
+
+    private readonly Queue<ChartEntry> _accelX = new(50);
+    private readonly Queue<ChartEntry> _accelY = new(50);
+    private readonly Queue<ChartEntry> _accelZ = new(50);
     
     private System.Threading.Timer? _updateTimer;
     private int _dataPointIndex;
@@ -40,6 +44,9 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
     
     [ObservableProperty]
     private Chart? _linearAccelChart;
+
+    [ObservableProperty]
+    private Chart? _accelerometerChart;
     
     [ObservableProperty]
     private string _gyroValues = "X: --  Y: --  Z: --";
@@ -52,6 +59,9 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
     
     [ObservableProperty]
     private string _linearValues = "X: --  Y: --  Z: --";
+
+    [ObservableProperty]
+    private string _accelValues = "X: --  Y: --  Z: --";
     
     [ObservableProperty]
     private bool _isRecording;
@@ -82,6 +92,7 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
         MagnetometerChart = CreateEmptyChart("Magnetometer (μT)");
         GravityChart = CreateEmptyChart("Gravity (m/s²)");
         LinearAccelChart = CreateEmptyChart("Linear Acceleration (m/s²)");
+        AccelerometerChart = CreateEmptyChart("Accelerometer (m/s²)");
     }
 
     private static LineChart CreateEmptyChart(string label)
@@ -132,6 +143,13 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
                     AddValue(_linearY, lin.Y);
                     AddValue(_linearZ, lin.Z);
                     MainThread.BeginInvokeOnMainThread(() => LinearValues = $"X: {lin.X:F2}  Y: {lin.Y:F2}  Z: {lin.Z:F2}");
+                    break;
+                    
+                case AccelerometerReading accel:
+                    AddValue(_accelX, accel.X);
+                    AddValue(_accelY, accel.Y);
+                    AddValue(_accelZ, accel.Z);
+                    MainThread.BeginInvokeOnMainThread(() => AccelValues = $"X: {accel.X:F2}  Y: {accel.Y:F2}  Z: {accel.Z:F2}");
                     break;
             }
         }
@@ -195,6 +213,7 @@ public partial class MotionSensorsViewModel : ObservableObject, IDisposable
                     MagnetometerChart = CreateMultiSeriesChart(_magX, _magY, _magZ, "Magnetometer");
                     GravityChart = CreateMultiSeriesChart(_gravityX, _gravityY, _gravityZ, "Gravity");
                     LinearAccelChart = CreateMultiSeriesChart(_linearX, _linearY, _linearZ, "Linear Accel");
+                    AccelerometerChart = CreateMultiSeriesChart(_accelX, _accelY, _accelZ, "Accelerometer");
                 }
                 catch (Exception ex)
                 {

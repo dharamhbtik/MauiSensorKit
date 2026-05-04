@@ -1,9 +1,5 @@
-#if ANDROID
-using Android.Hardware;
-using Android.Runtime;
-#endif
-
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Devices.Sensors;
 
 namespace MauiSensorKit;
 
@@ -13,12 +9,6 @@ namespace MauiSensorKit;
 public sealed class GyroscopeCollector : BaseSensorCollector<GyroscopeCollector>
 {
     private string? _sessionId;
-
-#if ANDROID
-    private SensorManager? _sensorManager;
-    private Sensor? _gyroscopeSensor;
-    private GyroscopeListener? _listener;
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GyroscopeCollector"/> class.
@@ -36,24 +26,7 @@ public sealed class GyroscopeCollector : BaseSensorCollector<GyroscopeCollector>
     /// <inheritdoc/>
     public override Task<bool> IsSupportedAsync()
     {
-#if ANDROID
-        try
-        {
-            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Gyroscope);
-            return Task.FromResult(sensor != null);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking gyroscope support on Android");
-            return Task.FromResult(false);
-        }
-#elif IOS
-        return Task.FromResult(true); // iOS gyroscope is commonly available
-#else
-        Logger.LogWarning("Gyroscope not supported on this platform");
-        return Task.FromResult(false);
-#endif
+        return Task.FromResult(Gyroscope.Default.IsSupported);
     }
 
     /// <inheritdoc/>
@@ -69,26 +42,14 @@ public sealed class GyroscopeCollector : BaseSensorCollector<GyroscopeCollector>
         {
             _sessionId = sessionId;
 
-#if ANDROID
-            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _gyroscopeSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Gyroscope);
-
-            if (_gyroscopeSensor == null)
+            if (!Gyroscope.Default.IsSupported)
             {
-                Logger.LogWarning("Gyroscope not available on this Android device");
+                Logger.LogWarning("Gyroscope not available on this device");
                 return Task.CompletedTask;
             }
 
-            _listener = new GyroscopeListener(this);
-            _sensorManager.RegisterListener(_listener, _gyroscopeSensor, SensorDelay.Normal);
-#elif IOS
-            // iOS implementation using native APIs would go here
-            Logger.LogWarning("iOS gyroscope implementation not yet complete");
-            return Task.CompletedTask;
-#else
-            Logger.LogWarning("Gyroscope not supported on this platform");
-            return Task.CompletedTask;
-#endif
+            Gyroscope.Default.ReadingChanged += Gyroscope_ReadingChanged;
+            Gyroscope.Default.Start(SensorSpeed.UI);
 
             IsRunning = true;
             Logger.LogInformation("Gyroscope collector started");
@@ -112,13 +73,11 @@ public sealed class GyroscopeCollector : BaseSensorCollector<GyroscopeCollector>
 
         try
         {
-#if ANDROID
-            if (_sensorManager != null && _listener != null)
+            if (Gyroscope.Default.IsSupported)
             {
-                _sensorManager.UnregisterListener(_listener);
-                _listener = null;
+                Gyroscope.Default.Stop();
+                Gyroscope.Default.ReadingChanged -= Gyroscope_ReadingChanged;
             }
-#endif
 
             IsRunning = false;
             _sessionId = null;
@@ -133,41 +92,25 @@ public sealed class GyroscopeCollector : BaseSensorCollector<GyroscopeCollector>
         return Task.CompletedTask;
     }
 
-#if ANDROID
-    private class GyroscopeListener : Java.Lang.Object, ISensorEventListener
+    private void Gyroscope_ReadingChanged(object? sender, GyroscopeChangedEventArgs e)
     {
-        private readonly GyroscopeCollector _collector;
-
-        public GyroscopeListener(GyroscopeCollector collector)
+        try
         {
-            _collector = collector;
+            var reading = new GyroscopeReading
+            {
+                DeviceId = DeviceId,
+                SessionId = _sessionId ?? string.Empty,
+                X = e.Reading.AngularVelocity.X,
+                Y = e.Reading.AngularVelocity.Y,
+                Z = e.Reading.AngularVelocity.Z,
+                IsSimulated = false
+            };
+
+            RaiseReading(reading);
         }
-
-        public void OnAccuracyChanged(Sensor? sensor, SensorStatus accuracy) { }
-
-        public void OnSensorChanged(SensorEvent? e)
+        catch (Exception ex)
         {
-            if (e?.Values == null || e.Values.Count < 3) return;
-
-            try
-            {
-                var reading = new GyroscopeReading
-                {
-                    DeviceId = _collector.DeviceId,
-                    SessionId = _collector._sessionId ?? string.Empty,
-                    X = e.Values[0],
-                    Y = e.Values[1],
-                    Z = e.Values[2],
-                    IsSimulated = false
-                };
-
-                _collector.RaiseReading(reading);
-            }
-            catch (Exception ex)
-            {
-                _collector.Logger.LogError(ex, "Error processing gyroscope reading");
-            }
+            Logger.LogError(ex, "Error processing gyroscope reading");
         }
     }
-#endif
 }

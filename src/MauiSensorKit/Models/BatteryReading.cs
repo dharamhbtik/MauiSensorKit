@@ -68,6 +68,59 @@ public sealed record BatteryReading : SensorReading
     public bool IsCharging => State == BatteryState.Charging;
 
     /// <summary>
+    /// Gets the battery technology (e.g., "Li-ion", "Li-poly").
+    /// </summary>
+    public string Technology { get; init; } = "Unknown";
+
+    /// <summary>
+    /// Gets the battery health status (Good, Cold, Dead, Overheat, etc.).
+    /// </summary>
+    public BatteryHealth Health { get; init; } = BatteryHealth.Unknown;
+
+    /// <summary>
+    /// Gets the remaining capacity in milliWatt-hours (mWh).
+    /// </summary>
+    public int? CapacityRemainingMWh { get; init; }
+
+    /// <summary>
+    /// Gets the battery capacity percentage as reported by system.
+    /// </summary>
+    public double? BatteryCapacityPercent { get; init; }
+
+    /// <summary>
+    /// Gets the session identifier for grouping readings.
+    /// </summary>
+    public string SessionId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets a value indicating whether this reading was simulated.
+    /// </summary>
+    public bool IsSimulated { get; init; }
+
+    /// <summary>
+    /// Converts to a BatterySnapshot for storage.
+    /// </summary>
+    public BatterySnapshot ToSnapshot()
+    {
+        return new BatterySnapshot
+        {
+            Timestamp = Timestamp,
+            ChargeLevel = ChargeLevel,
+            State = State,
+            PowerSource = PowerSource,
+            VoltageVolts = VoltageVolts,
+            CurrentMilliAmps = CurrentMilliAmps,
+            TemperatureCelsius = TemperatureCelsius,
+            SessionId = SessionId,
+            EstimatedRemainingMinutes = EstimatedRemainingMinutes,
+            Technology = Technology,
+            Health = Health,
+            CapacityRemainingMWh = CapacityRemainingMWh,
+            BatteryCapacityPercent = BatteryCapacityPercent
+        };
+    }
+
+    /// <summary>
     /// Returns a formatted string representation of the reading.
     /// </summary>
     public override string ToString()

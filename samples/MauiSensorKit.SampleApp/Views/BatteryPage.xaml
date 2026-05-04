@@ -16,7 +16,7 @@
                    CornerRadius="16"
                    HasShadow="True"
                    Padding="24">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="4">
                     <!-- Battery Icon and Percentage -->
                     <HorizontalStackLayout Grid.Row="0" Spacing="16" HorizontalOptions="Center">
                         <Label Text="🔋" FontSize="48" />
@@ -35,27 +35,32 @@
                     
                     <!-- Stats Row -->
                     <HorizontalStackLayout Grid.Row="2" 
-                                          Spacing="24" 
+                                          Spacing="16" 
                                           HorizontalOptions="Center"
                                           Margin="0,8,0,0">
-                        <Label Text="{Binding CurrentSnapshot.TemperatureCelsius, StringFormat='Temp: {0:F0}°C'}" 
+                        <Label Text="{Binding TemperatureText}" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
-                        <Label Text="{Binding CurrentSnapshot.VoltageVolts, StringFormat='Voltage: {0:F1}V'}" 
+                        <Label Text="{Binding VoltageText}" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
-                        <Label Text="{Binding CurrentSnapshot.CurrentMilliAmps, StringFormat='Current: {0:F0}mA'}" 
+                        <Label Text="{Binding CurrentText}" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
                     </HorizontalStackLayout>
                     
-                    <!-- Health Status -->
-                    <Label Grid.Row="3"
-                           Text="{Binding CurrentSnapshot.HealthStatus}"
-                           FontSize="12"
-                           TextColor="#99FFFFFF"
-                           HorizontalOptions="Center"
-                           Margin="0,4,0,0" />
+                    <!-- Technology and Health Row -->
+                    <HorizontalStackLayout Grid.Row="3" 
+                                          Spacing="16" 
+                                          HorizontalOptions="Center"
+                                          Margin="0,4,0,0">
+                        <Label Text="{Binding TechnologyText, StringFormat='Tech: {0}'}" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                        <Label Text="{Binding HealthText, StringFormat='Health: {0}'}" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </HorizontalStackLayout>
                 </Grid>
             </Frame>
 
@@ -91,66 +96,87 @@
             </Frame>
 
             <!-- SECTION 4: Analytics Cards -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="12">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                <!-- Voltage Card -->
                 <Frame Grid.Row="0" Grid.Column="0" 
                        BackgroundColor="#1A1A2E"
                        CornerRadius="12"
                        Padding="16">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="📉" FontSize="24" />
-                        <Label Text="{Binding DrainRateText}" 
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="⚡" FontSize="24" />
+                        <Label Text="{Binding VoltageText}" 
                                FontSize="20"
                                TextColor="#FFFFFF"
                                FontAttributes="Bold" />
-                        <Label Text="Drain Rate" 
+                        <Label Text="Voltage" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
                     </VerticalStackLayout>
                 </Frame>
 
+                <!-- Current Card -->
                 <Frame Grid.Row="0" Grid.Column="1" 
                        BackgroundColor="#1A1A2E"
                        CornerRadius="12"
                        Padding="16">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="⏱️" FontSize="24" />
-                        <Label Text="{Binding TimeRemainingText}" 
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="🔋" FontSize="24" />
+                        <Label Text="{Binding CurrentText}" 
                                FontSize="20"
                                TextColor="#FFFFFF"
                                FontAttributes="Bold" />
-                        <Label Text="Time Remaining" 
+                        <Label Text="Current" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
                     </VerticalStackLayout>
                 </Frame>
 
+                <!-- Temperature Card -->
                 <Frame Grid.Row="1" Grid.Column="0" 
                        BackgroundColor="#1A1A2E"
                        CornerRadius="12"
                        Padding="16">
-                    <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                         <Label Text="🌡️" FontSize="24" />
-                        <Label Text="{Binding PeakTempText}" 
+                        <Label Text="{Binding TemperatureText}" 
                                FontSize="20"
                                TextColor="#FFFFFF"
                                FontAttributes="Bold" />
-                        <Label Text="Peak Temp" 
+                        <Label Text="Temperature" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
                     </VerticalStackLayout>
                 </Frame>
 
+                <!-- Technology Card -->
                 <Frame Grid.Row="1" Grid.Column="1" 
                        BackgroundColor="#1A1A2E"
                        CornerRadius="12"
                        Padding="16">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="🔌" FontSize="24" />
-                        <Label Text="{Binding ChargeCyclesText}" 
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="�" FontSize="24" />
+                        <Label Text="{Binding TechnologyText}" 
                                FontSize="20"
                                TextColor="#FFFFFF"
                                FontAttributes="Bold" />
-                        <Label Text="Charge Cycles" 
+                        <Label Text="Technology" 
+                               TextColor="#99FFFFFF"
+                               FontSize="12" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Health Card -->
+                <Frame Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                       BackgroundColor="#1A1A2E"
+                       CornerRadius="12"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label Text="❤️" FontSize="24" />
+                        <Label Text="{Binding HealthText}" 
+                               FontSize="20"
+                               TextColor="#FFFFFF"
+                               FontAttributes="Bold" />
+                        <Label Text="Battery Health" 
                                TextColor="#99FFFFFF"
                                FontSize="12" />
                     </VerticalStackLayout>

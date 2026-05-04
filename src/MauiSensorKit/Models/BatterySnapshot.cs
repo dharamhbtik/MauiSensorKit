@@ -66,6 +66,72 @@ public class BatterySnapshot
     /// Estimated remaining minutes until full charge or empty.
     /// </summary>
     public double? EstimatedRemainingMinutes { get; set; }
+
+    /// <summary>
+    /// Battery technology (e.g., "Li-ion", "Li-poly").
+    /// </summary>
+    public string Technology { get; set; } = "Unknown";
+
+    /// <summary>
+    /// Battery health status (Good, Overheat, Cold, Dead, etc.).
+    /// </summary>
+    public BatteryHealth Health { get; set; } = BatteryHealth.Unknown;
+
+    /// <summary>
+    /// Remaining capacity in milliWatt-hours (mWh).
+    /// </summary>
+    public int? CapacityRemainingMWh { get; set; }
+
+    /// <summary>
+    /// Battery capacity percentage as reported by system.
+    /// </summary>
+    public double? BatteryCapacityPercent { get; set; }
+}
+
+/// <summary>
+/// Battery health status from the OS battery manager.
+/// </summary>
+public enum BatteryHealth
+{
+    /// <summary>
+    /// Unknown health status.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
+    /// Battery is in good condition.
+    /// </summary>
+    Good,
+
+    /// <summary>
+    /// Battery is overheating.
+    /// </summary>
+    Overheat,
+
+    /// <summary>
+    /// Battery is cold.
+    /// </summary>
+    Cold,
+
+    /// <summary>
+    /// Battery is dead.
+    /// </summary>
+    Dead,
+
+    /// <summary>
+    /// Battery voltage is too high.
+    /// </summary>
+    OverVoltage,
+
+    /// <summary>
+    /// Battery has unspecified failure.
+    /// </summary>
+    UnspecifiedFailure,
+
+    /// <summary>
+    /// Battery is good but failure was reported.
+    /// </summary>
+    GoodButFailure
 }
 
 /// <summary>

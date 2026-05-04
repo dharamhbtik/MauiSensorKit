@@ -1,4 +1,8 @@
 using Microsoft.Extensions.Logging;
+#if ANDROID
+using Android.Content;
+using Android.OS;
+#endif
 
 namespace MauiSensorKit;
 
@@ -134,6 +138,11 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
                 IsSimulated = false
             };
 
+#if ANDROID
+            // Get additional battery information from Android BatteryManager
+            FillAndroidBatteryInfo(reading);
+#endif
+
             RaiseReading(reading);
         }
         catch (Exception ex)
@@ -141,6 +150,90 @@ public sealed class BatteryCollector : BaseSensorCollector<BatteryCollector>
             Logger.LogError(ex, "Error emitting battery reading");
         }
     }
+
+#if ANDROID
+    private void FillAndroidBatteryInfo(BatteryReading reading)
+    {
+        try
+        {
+            var context = global::Android.App.Application.Context;
+            if (context == null) return;
+
+            var intentFilter = new IntentFilter(Intent.ActionBatteryChanged);
+            var batteryStatus = context.RegisterReceiver(null, intentFilter);
+
+            if (batteryStatus != null)
+            {
+                // Voltage in millivolts, convert to volts
+                int voltageMv = batteryStatus.GetIntExtra(BatteryManager.ExtraVoltage, -1);
+                if (voltageMv > 0)
+                {
+                    reading.VoltageVolts = voltageMv / 1000.0;
+                }
+
+                // Current in microamperes, convert to milliamperes
+                int currentUa = batteryStatus.GetIntExtra(BatteryManager.ExtraCurrentAverage, -1);
+                if (currentUa >= 0)
+                {
+                    reading.CurrentMilliAmps = currentUa / 1000.0;
+                }
+
+                // Temperature in tenths of degree Celsius
+                int tempTenths = batteryStatus.GetIntExtra(BatteryManager.ExtraTemperature, -1);
+                if (tempTenths > 0)
+                {
+                    reading.TemperatureCelsius = tempTenths / 10.0;
+                }
+
+                // Technology (Li-ion, Li-poly, etc.)
+                string? technology = batteryStatus.GetStringExtra(BatteryManager.ExtraTechnology);
+                reading.Technology = technology ?? "Unknown";
+
+                // Health
+                int health = batteryStatus.GetIntExtra(BatteryManager.ExtraHealth, -1);
+                reading.Health = ConvertBatteryHealth(health);
+
+                // Battery Capacity (if available)
+                var batteryManager = context.GetSystemService(Context.BatteryService) as BatteryManager;
+                if (batteryManager != null)
+                {
+                    long remainingEnergy = batteryManager.GetLongProperty(BatteryManager.BatteryPropertyChargeCounter);
+                    if (remainingEnergy > 0)
+                    {
+                        reading.CapacityRemainingMWh = (int)(remainingEnergy / 1000); // Convert to mWh
+                    }
+
+                    long remainingCapacity = batteryManager.GetLongProperty(BatteryManager.BatteryPropertyCapacity);
+                    if (remainingCapacity > 0)
+                    {
+                        reading.BatteryCapacityPercent = remainingCapacity / 100.0;
+                    }
+                }
+
+                Logger.LogDebug("Android battery info collected: Voltage={Voltage}V, Current={Current}mA, Temp={Temp}C",
+                    reading.VoltageVolts, reading.CurrentMilliAmps, reading.TemperatureCelsius);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error getting Android battery info");
+        }
+    }
+
+    private static BatteryHealth ConvertBatteryHealth(int health)
+    {
+        return health switch
+        {
+            BatteryHealth.Good => BatteryHealth.Good,
+            BatteryHealth.Cold => BatteryHealth.Cold,
+            BatteryHealth.Dead => BatteryHealth.Dead,
+            BatteryHealth.Overheat => BatteryHealth.Overheat,
+            BatteryHealth.OverVoltage => BatteryHealth.OverVoltage,
+            BatteryHealth.UnspecifiedFailure => BatteryHealth.UnspecifiedFailure,
+            _ => BatteryHealth.Unknown
+        };
+    }
+#endif
 
     private static BatteryState ConvertBatteryState(Microsoft.Maui.Devices.BatteryState state)
     {

@@ -43,12 +43,26 @@ public partial class MapPage : ContentPage
 
     private async Task ExecuteMapZoom()
     {
-        if (!_isMapInitialized || _viewModel.CurrentLocation == null) return;
+        if (!_isMapInitialized) return;
         
         try
         {
-            var js = $"centerOn({_viewModel.CurrentLocation.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentLocation.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentZoom});";
-            await SensorMap.EvaluateJavaScriptAsync(js);
+            // Get location from ViewModel or fetch directly
+            var location = _viewModel.CurrentLocation;
+            if (location == null)
+            {
+                location = await Geolocation.GetLocationAsync(new GeolocationRequest
+                {
+                    DesiredAccuracy = GeolocationAccuracy.Medium,
+                    Timeout = TimeSpan.FromSeconds(5)
+                });
+            }
+            
+            if (location != null)
+            {
+                var js = $"centerOn({location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {_viewModel.CurrentZoom});";
+                await SensorMap.EvaluateJavaScriptAsync(js);
+            }
         }
         catch (Exception ex)
         {

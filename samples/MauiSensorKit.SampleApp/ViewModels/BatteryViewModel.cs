@@ -60,6 +60,21 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
     private string _chargeCyclesText = "--";
     
     [ObservableProperty]
+    private string _voltageText = "--";
+    
+    [ObservableProperty]
+    private string _currentText = "--";
+    
+    [ObservableProperty]
+    private string _temperatureText = "--";
+    
+    [ObservableProperty]
+    private string _technologyText = "Unknown";
+    
+    [ObservableProperty]
+    private string _healthText = "Unknown";
+    
+    [ObservableProperty]
     private bool _hasData;
     
     [ObservableProperty]
@@ -94,6 +109,7 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
             {
                 CurrentSnapshot = currentBattery;
                 UpdateHeroCard(currentBattery);
+                UpdateBatteryDetails(currentBattery);
                 
                 // Add current snapshot to history for immediate display
                 await _batteryHistoryService.RecordSnapshotAsync(currentBattery);
@@ -118,7 +134,7 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
             var state = Microsoft.Maui.Devices.Battery.State;
             var powerSource = Microsoft.Maui.Devices.Battery.PowerSource;
             
-            return new BatterySnapshot
+            var snapshot = new BatterySnapshot
             {
                 Timestamp = DateTimeOffset.Now,
                 ChargeLevel = level,
@@ -128,14 +144,107 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
                 CurrentMilliAmps = null,
                 TemperatureCelsius = null,
                 EstimatedRemainingMinutes = null,
+                Technology = "Unknown",
+                Health = BatteryHealth.Unknown,
                 SessionId = _currentSessionId
             };
+
+#if ANDROID
+            // Get Android-specific battery information directly
+            FillAndroidBatteryInfo(snapshot);
+#endif
+
+            return snapshot;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error getting battery: {ex.Message}");
             return null;
         }
     }
+
+#if ANDROID
+    private void FillAndroidBatteryInfo(BatterySnapshot snapshot)
+    {
+        try
+        {
+            var context = Android.App.Application.Context;
+            if (context == null) return;
+
+            var intentFilter = new Android.Content.IntentFilter(Android.Content.Intent.ActionBatteryChanged);
+            var batteryStatus = context.RegisterReceiver(null, intentFilter);
+
+            if (batteryStatus != null)
+            {
+                // Voltage in millivolts, convert to volts
+                int voltageMv = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraVoltage, -1);
+                if (voltageMv > 0)
+                {
+                    snapshot.VoltageVolts = voltageMv / 1000.0;
+                }
+
+                // Current in microamperes, convert to milliamperes
+                int currentUa = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraCurrentAverage, -1);
+                if (currentUa >= 0)
+                {
+                    snapshot.CurrentMilliAmps = currentUa / 1000.0;
+                }
+
+                // Temperature in tenths of degree Celsius
+                int tempTenths = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraTemperature, -1);
+                if (tempTenths > 0)
+                {
+                    snapshot.TemperatureCelsius = tempTenths / 10.0;
+                }
+
+                // Technology (Li-ion, Li-poly, etc.)
+                string? technology = batteryStatus.GetStringExtra(Android.OS.BatteryManager.ExtraTechnology);
+                snapshot.Technology = technology ?? "Unknown";
+
+                // Health
+                int health = batteryStatus.GetIntExtra(Android.OS.BatteryManager.ExtraHealth, -1);
+                snapshot.Health = ConvertAndroidHealth(health);
+
+                // Battery Capacity from BatteryManager
+                var batteryManager = context.GetSystemService(Android.Content.Context.BatteryService) as Android.OS.BatteryManager;
+                if (batteryManager != null)
+                {
+                    long remainingEnergy = batteryManager.GetLongProperty(Android.OS.BatteryManager.BatteryPropertyChargeCounter);
+                    if (remainingEnergy > 0)
+                    {
+                        snapshot.CapacityRemainingMWh = (int)(remainingEnergy / 1000);
+                    }
+
+                    long remainingCapacity = batteryManager.GetLongProperty(Android.OS.BatteryManager.BatteryPropertyCapacity);
+                    if (remainingCapacity > 0)
+                    {
+                        snapshot.BatteryCapacityPercent = remainingCapacity / 100.0;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Android battery: {snapshot.VoltageVolts}V, {snapshot.CurrentMilliAmps}mA, {snapshot.TemperatureCelsius}C, {snapshot.Technology}, {snapshot.Health}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error getting Android battery info: {ex.Message}");
+        }
+    }
+
+    private static BatteryHealth ConvertAndroidHealth(int health)
+    {
+        return health switch
+        {
+            Android.OS.BatteryHealth.Good => BatteryHealth.Good,
+            Android.OS.BatteryHealth.Cold => BatteryHealth.Cold,
+            Android.OS.BatteryHealth.Dead => BatteryHealth.Dead,
+            Android.OS.BatteryHealth.Overheat => BatteryHealth.Overheat,
+            Android.OS.BatteryHealth.OverVoltage => BatteryHealth.OverVoltage,
+            Android.OS.BatteryHealth.UnspecifiedFailure => BatteryHealth.UnspecifiedFailure,
+            _ => BatteryHealth.Unknown
+        };
+    }
+#endif
     
     private void OnSensorReading(object? sender, SensorReading reading)
     {
@@ -151,6 +260,10 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
                 CurrentMilliAmps = battery.CurrentMilliAmps,
                 TemperatureCelsius = battery.TemperatureCelsius,
                 EstimatedRemainingMinutes = battery.EstimatedRemainingMinutes,
+                Technology = battery.Technology,
+                Health = battery.Health,
+                CapacityRemainingMWh = battery.CapacityRemainingMWh,
+                BatteryCapacityPercent = battery.BatteryCapacityPercent,
                 SessionId = _currentSessionId
             };
             
@@ -158,6 +271,7 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
             {
                 CurrentSnapshot = snapshot;
                 UpdateHeroCard(snapshot);
+                UpdateBatteryDetails(snapshot);
             });
         }
     }
@@ -199,6 +313,42 @@ public partial class BatteryViewModel : ObservableObject, IDisposable
             var mins = (Analytics?.EstimatedFullDrainMinutes ?? 0) % 60;
             EstimatedTimeString = $"Est. {hours:F0}h {mins:F0}m left";
         }
+    }
+    
+    private void UpdateBatteryDetails(BatterySnapshot snapshot)
+    {
+        // Update voltage display
+        VoltageText = snapshot.VoltageVolts.HasValue 
+            ? $"{snapshot.VoltageVolts.Value:F2}V" 
+            : "--";
+        
+        // Update current display
+        CurrentText = snapshot.CurrentMilliAmps.HasValue 
+            ? $"{snapshot.CurrentMilliAmps.Value:F0}mA" 
+            : "--";
+        
+        // Update temperature display
+        TemperatureText = snapshot.TemperatureCelsius.HasValue 
+            ? $"{snapshot.TemperatureCelsius.Value:F1}°C" 
+            : "--";
+        
+        // Update technology
+        TechnologyText = !string.IsNullOrEmpty(snapshot.Technology) 
+            ? snapshot.Technology 
+            : "Unknown";
+        
+        // Update health status
+        HealthText = snapshot.Health switch
+        {
+            BatteryHealth.Good => "Good",
+            BatteryHealth.Cold => "Cold",
+            BatteryHealth.Dead => "Dead",
+            BatteryHealth.Overheat => "Overheat",
+            BatteryHealth.OverVoltage => "Over Voltage",
+            BatteryHealth.UnspecifiedFailure => "Failure",
+            BatteryHealth.GoodButFailure => "Good (Fail)",
+            _ => "Unknown"
+        };
     }
     
     [RelayCommand]

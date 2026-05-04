@@ -15,7 +15,7 @@ A comprehensive .NET MAUI SDK for collecting, storing, and uploading mobile sens
 - **Export Options**: Export as formatted text file or compressed ZIP archive
 - **Auto Upload**: Automatic upload to your API endpoint with retry logic
 - **Activity Recognition**: Detect user activities (walking, running, driving, etc.)
-- **Cross-Platform**: Android and iOS support with platform-specific optimizations
+- **Cross-Platform**: Built on `Microsoft.Maui.Devices.Sensors` for native cross-platform support across Android, iOS, Windows, and MacCatalyst where available.
 
 ## Installation
 

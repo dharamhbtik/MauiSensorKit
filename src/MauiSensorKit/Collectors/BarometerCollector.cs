@@ -1,9 +1,5 @@
-#if ANDROID
-using Android.Hardware;
-using Android.Runtime;
-#endif
-
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Devices.Sensors;
 
 namespace MauiSensorKit;
 
@@ -13,12 +9,6 @@ namespace MauiSensorKit;
 public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
 {
     private string? _sessionId;
-
-#if ANDROID
-    private SensorManager? _sensorManager;
-    private Sensor? _pressureSensor;
-    private BarometerListener? _listener;
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BarometerCollector"/> class.
@@ -36,24 +26,7 @@ public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
     /// <inheritdoc/>
     public override Task<bool> IsSupportedAsync()
     {
-#if ANDROID
-        try
-        {
-            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            var sensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Pressure);
-            return Task.FromResult(sensor != null);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error checking barometer support on Android");
-            return Task.FromResult(false);
-        }
-#elif IOS
-        return Task.FromResult(false); // iOS doesn't expose barometer via public API
-#else
-        Logger.LogWarning("Barometer not supported on this platform");
-        return Task.FromResult(false);
-#endif
+        return Task.FromResult(Barometer.Default.IsSupported);
     }
 
     /// <inheritdoc/>
@@ -69,22 +42,14 @@ public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
         {
             _sessionId = sessionId;
 
-#if ANDROID
-            _sensorManager ??= global::Android.App.Application.Context.GetSystemService(global::Android.Content.Context.SensorService) as SensorManager;
-            _pressureSensor = _sensorManager?.GetDefaultSensor(global::Android.Hardware.SensorType.Pressure);
-
-            if (_pressureSensor == null)
+            if (!Barometer.Default.IsSupported)
             {
-                Logger.LogWarning("Barometer not available on this Android device");
+                Logger.LogWarning("Barometer not available on this device");
                 return Task.CompletedTask;
             }
 
-            _listener = new BarometerListener(this);
-            _sensorManager.RegisterListener(_listener, _pressureSensor, SensorDelay.Normal);
-#else
-            Logger.LogWarning("Barometer not supported on this platform");
-            return Task.CompletedTask;
-#endif
+            Barometer.Default.ReadingChanged += Barometer_ReadingChanged;
+            Barometer.Default.Start(SensorSpeed.UI);
 
             IsRunning = true;
             Logger.LogInformation("Barometer collector started");
@@ -108,13 +73,11 @@ public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
 
         try
         {
-#if ANDROID
-            if (_sensorManager != null && _listener != null)
+            if (Barometer.Default.IsSupported)
             {
-                _sensorManager.UnregisterListener(_listener);
-                _listener = null;
+                Barometer.Default.Stop();
+                Barometer.Default.ReadingChanged -= Barometer_ReadingChanged;
             }
-#endif
 
             IsRunning = false;
             _sessionId = null;
@@ -129,39 +92,23 @@ public sealed class BarometerCollector : BaseSensorCollector<BarometerCollector>
         return Task.CompletedTask;
     }
 
-#if ANDROID
-    private class BarometerListener : Java.Lang.Object, ISensorEventListener
+    private void Barometer_ReadingChanged(object? sender, BarometerChangedEventArgs e)
     {
-        private readonly BarometerCollector _collector;
-
-        public BarometerListener(BarometerCollector collector)
+        try
         {
-            _collector = collector;
+            var reading = new BarometerReading
+            {
+                DeviceId = DeviceId,
+                SessionId = _sessionId ?? string.Empty,
+                PressureHPa = e.Reading.PressureInHectopascals,
+                IsSimulated = false
+            };
+
+            RaiseReading(reading);
         }
-
-        public void OnAccuracyChanged(Sensor? sensor, SensorStatus accuracy) { }
-
-        public void OnSensorChanged(SensorEvent? e)
+        catch (Exception ex)
         {
-            if (e?.Values == null || e.Values.Count < 1) return;
-
-            try
-            {
-                var reading = new BarometerReading
-                {
-                    DeviceId = _collector.DeviceId,
-                    SessionId = _collector._sessionId ?? string.Empty,
-                    PressureHPa = e.Values[0],
-                    IsSimulated = false
-                };
-
-                _collector.RaiseReading(reading);
-            }
-            catch (Exception ex)
-            {
-                _collector.Logger.LogError(ex, "Error processing barometer reading");
-            }
+            Logger.LogError(ex, "Error processing barometer reading");
         }
     }
-#endif
 }

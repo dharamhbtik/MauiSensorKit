@@ -71,23 +71,47 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
     {
         _sensorService = sensorService;
         _sessionState = sessionState;
+        _logger = logger;
     }
 
     [RelayCommand]
     private async Task StartMonitoringAsync()
     {
+        if (IsMonitoring) return;
+
         try
         {
+            // Start native Android Activity Recognition API
+#if ANDROID
+            var context = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity?.ApplicationContext;
+            if (context != null)
+            {
+                _activityRecognitionService = new Platforms.Android.Services.ActivityRecognitionService();
+                _activityRecognitionService.Initialize(context);
+
+                // Set up listener for activity updates
+                var listener = new ActivityRecognitionListener(this);
+                var success = await _activityRecognitionService.StartAsync(listener);
+
+                if (!success)
+                {
+                    _logger.LogWarning("Failed to start native activity recognition, falling back to sensor-based");
+                    StartSensorBasedMonitoring();
+                }
+            }
+            else
+            {
+                StartSensorBasedMonitoring();
+            }
+#else
+            StartSensorBasedMonitoring();
+#endif
+
+            // Subscribe to GPS updates for speed-based vehicle detection
+            _sensorService.ReadingRecorded += OnReadingRecorded;
+            _sensorService.StartLocationMonitoring(TimeSpan.FromSeconds(2));
+
             IsMonitoring = true;
-            StatusMessage = "Analyzing sensor data...";
-            ActivityHistory.Clear();
-            
-            // Start sensor service
-            await _sensorService.StartAsync();
-            
-            // Subscribe to sensor readings
-            _sensorService.ReadingRecorded += OnSensorReading;
-            
             StatusMessage = "Monitoring active - analyzing patterns...";
             AddActivityEvent("Monitoring started", "🚀");
         }
@@ -98,16 +122,41 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
     }
 
+    private void StartSensorBasedMonitoring()
+    {
+        // Fallback to sensor-based monitoring
+        _sensorService.ReadingRecorded += OnSensorReading;
+        _sensorService.StartBatteryMonitoring(TimeSpan.FromSeconds(30));
+        _sensorService.StartAccelerometerMonitoring(TimeSpan.FromMilliseconds(100));
+        _sensorService.StartGyroscopeMonitoring(TimeSpan.FromMilliseconds(100));
+        _sensorService.StartBarometerMonitoring(TimeSpan.FromSeconds(1));
+
+        var hasStepCounter = _sensorService.IsSensorAvailableAsync(SensorType.StepCounter).Result;
+        if (hasStepCounter)
+        {
+            _ = _sensorService.StartStepCounterMonitoringAsync(TimeSpan.FromSeconds(1));
+        }
+    }
+
     [RelayCommand]
     private async Task StopMonitoringAsync()
     {
         IsMonitoring = false;
         StatusMessage = "Monitoring stopped";
-        
-        // Stop sensor service
-        _sensorService.ReadingRecorded -= OnSensorReading;
+
+        // Stop native activity recognition
+#if ANDROID
+        if (_activityRecognitionService != null)
+        {
+            await _activityRecognitionService.StopAsync();
+            _activityRecognitionService = null;
+        }
+#endif
+
+        // Stop sensors
+        _sensorService.ReadingRecorded -= OnReadingRecorded;
         await _sensorService.StopAsync();
-        
+
         // Clear subscriptions
         foreach (var sub in _subscriptions)
         {
@@ -586,6 +635,74 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         });
     }
 
+    // GPS speed tracking for enhanced vehicle detection
+    private double _currentSpeedMps = 0;
+
+    private void OnReadingRecorded(object? sender, SensorReading reading)
+    {
+        if (reading is LocationReading loc && loc.SpeedMps.HasValue)
+        {
+            _currentSpeedMps = loc.SpeedMps.Value;
+
+#if ANDROID
+            // Update speed in activity recognition service for pro-level detection
+            _activityRecognitionService?.UpdateGpsSpeed(_currentSpeedMps);
+#endif
+        }
+    }
+
+#if ANDROID
+    private Platforms.Android.Services.ActivityRecognitionService? _activityRecognitionService;
+#endif
+
+    /// <summary>
+    /// Handle activity detected from native Android API
+    /// </summary>
+    private void HandleNativeActivityDetected(string activity, int confidence)
+    {
+        // Apply state machine for stable activity reporting
+        var now = DateTime.Now;
+
+        // Don't change activity too frequently
+        if (activity != CurrentActivity)
+        {
+            _consecutiveActivityReadings++;
+
+            var timeInCurrentActivity = (now - _activityStartTime).TotalMilliseconds;
+
+            if (_consecutiveActivityReadings >= 2 && timeInCurrentActivity >= 3000) // 2 confirmations, 3 seconds min
+            {
+                CurrentActivity = activity;
+                Confidence = $"{confidence}%";
+                _activityStartTime = now;
+                _consecutiveActivityReadings = 0;
+
+                // Update icon based on activity
+                ActivityIcon = activity switch
+                {
+                    "Walking" => "🚶",
+                    "Running" => "🏃",
+                    "In Car/Bus" => "🚗",
+                    "On Train/Metro" => "🚆",
+                    "On Bicycle" => "🚴",
+                    "Standing" => "🧍",
+                    "Sitting" => "🪑",
+                    "Light Movement" => "👋",
+                    _ => "❓"
+                };
+
+                AddActivityEvent($"Activity: {activity}", ActivityIcon);
+                _sessionState.CurrentActivity = activity;
+            }
+        }
+        else
+        {
+            _consecutiveActivityReadings = 0;
+            // Update confidence even if activity hasn't changed
+            Confidence = $"{confidence}%";
+        }
+    }
+
     public void Dispose()
     {
         try
@@ -605,6 +722,29 @@ public partial class ActivityRecognitionViewModel : ObservableObject, IDisposabl
         }
     }
 }
+
+#if ANDROID
+/// <summary>
+/// Listener for native Android activity recognition results
+/// </summary>
+public class ActivityRecognitionListener : Java.Lang.Object, MauiSensorKit.SampleApp.Platforms.Android.Services.IActivityRecognitionListener
+{
+    private readonly ActivityRecognitionViewModel _viewModel;
+
+    public ActivityRecognitionListener(ActivityRecognitionViewModel viewModel)
+    {
+        _viewModel = viewModel;
+    }
+
+    public void OnActivityDetected(string activity, int confidence)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _viewModel.HandleNativeActivityDetected(activity, confidence);
+        });
+    }
+}
+#endif
 
 public class ActivityEvent
 {
