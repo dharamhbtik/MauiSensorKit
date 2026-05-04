@@ -20,7 +20,8 @@ public static class MauiSensorKitServiceCollectionExtensions
     public static MauiAppBuilder UseMauiSensorKit(
         this MauiAppBuilder builder,
         Action<SensorKitOptions>? configureOptions = null,
-        Action<SensorKitUploadOptions>? configureUpload = null)
+        Action<SensorKitUploadOptions>? configureUpload = null,
+        Action<SensorRecordingOptions>? configureRecording = null)
     {
         if (builder == null)
             throw new ArgumentNullException(nameof(builder));
@@ -52,6 +53,11 @@ public static class MauiSensorKitServiceCollectionExtensions
             {
                 throw new InvalidOperationException($"Invalid SensorKitUploadOptions: {string.Join(", ", errors)}");
             }
+        });
+
+        builder.Services.Configure<SensorRecordingOptions>(opts =>
+        {
+            configureRecording?.Invoke(opts);
         });
 
         // 2. Register SensorKitOptions so it can be injected directly (not just IOptions<T>)
@@ -93,6 +99,7 @@ public static class MauiSensorKitServiceCollectionExtensions
         // 5. Register new analytics services
         builder.Services.TryAddSingleton<IBatteryHistoryService, BatteryHistoryService>();
         builder.Services.TryAddSingleton<IRouteTrackingService, RouteTrackingService>();
+        builder.Services.TryAddSingleton<ISensorRecordingService, SensorRecordingService>();
 
         return builder;
     }

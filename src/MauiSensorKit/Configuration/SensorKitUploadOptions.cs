@@ -1,6 +1,22 @@
 namespace MauiSensorKit;
 
 /// <summary>
+/// Defines the target platform for sensor data uploads.
+/// </summary>
+public enum UploadTarget
+{
+    /// <summary>
+    /// Uploads to a custom API endpoint via HTTP POST.
+    /// </summary>
+    CustomApi,
+
+    /// <summary>
+    /// Uploads to a Firebase Realtime Database.
+    /// </summary>
+    Firebase
+}
+
+/// <summary>
 /// Configuration options for MauiSensorKit data upload functionality.
 /// </summary>
 public class SensorKitUploadOptions
@@ -11,9 +27,25 @@ public class SensorKitUploadOptions
     public bool EnableUpload { get; set; }
 
     /// <summary>
-    /// Gets or sets the API endpoint URL for uploading sensor data.
+    /// Gets or sets the target platform for uploads. Defaults to CustomApi.
+    /// </summary>
+    public UploadTarget Target { get; set; } = UploadTarget.CustomApi;
+
+    /// <summary>
+    /// Gets or sets the custom API endpoint URL for uploading sensor data. Required if Target is CustomApi.
     /// </summary>
     public string? ApiEndpointUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Firebase Realtime Database URL. Required if Target is Firebase.
+    /// Example: https://your-project-id.firebaseio.com
+    /// </summary>
+    public string? FirebaseDatabaseUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional authentication token for Firebase requests.
+    /// </summary>
+    public string? FirebaseAuthToken { get; set; }
 
     /// <summary>
     /// Gets or sets the custom headers to include in upload requests.
@@ -60,10 +92,20 @@ public class SensorKitUploadOptions
 
         if (EnableUpload)
         {
-            if (string.IsNullOrWhiteSpace(ApiEndpointUrl))
-                errors.Add("ApiEndpointUrl is required when EnableUpload is true");
-            else if (!Uri.TryCreate(ApiEndpointUrl, UriKind.Absolute, out _))
-                errors.Add("ApiEndpointUrl must be a valid absolute URL");
+            if (Target == UploadTarget.CustomApi)
+            {
+                if (string.IsNullOrWhiteSpace(ApiEndpointUrl))
+                    errors.Add("ApiEndpointUrl is required when Target is CustomApi");
+                else if (!Uri.TryCreate(ApiEndpointUrl, UriKind.Absolute, out _))
+                    errors.Add("ApiEndpointUrl must be a valid absolute URL");
+            }
+            else if (Target == UploadTarget.Firebase)
+            {
+                if (string.IsNullOrWhiteSpace(FirebaseDatabaseUrl))
+                    errors.Add("FirebaseDatabaseUrl is required when Target is Firebase");
+                else if (!Uri.TryCreate(FirebaseDatabaseUrl, UriKind.Absolute, out _))
+                    errors.Add("FirebaseDatabaseUrl must be a valid absolute URL");
+            }
 
             if (MaxRetryAttempts < 0)
                 errors.Add("MaxRetryAttempts must be non-negative");

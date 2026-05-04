@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -221,25 +222,58 @@ public sealed class UploadService : IUploadService
 
     private async Task<bool> TryUploadBatchAsync(SensorDataBatch batch, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(_options.ApiEndpointUrl))
+        string requestUrl;
+
+        if (_options.Target == UploadTarget.CustomApi)
         {
-            _logger.LogError("API endpoint URL is not configured");
-            return false;
+            if (string.IsNullOrEmpty(_options.ApiEndpointUrl))
+            {
+                _logger.LogError("API endpoint URL is not configured");
+                return false;
+            }
+            requestUrl = _options.ApiEndpointUrl;
+        }
+        else // Firebase
+        {
+            if (string.IsNullOrEmpty(_options.FirebaseDatabaseUrl))
+            {
+                _logger.LogError("Firebase database URL is not configured");
+                return false;
+            }
+            
+            var baseUrl = _options.FirebaseDatabaseUrl.TrimEnd('/');
+            requestUrl = $"{baseUrl}/sensor_batches/{batch.SessionId}_{batch.Id}.json";
+            
+            if (!string.IsNullOrEmpty(_options.FirebaseAuthToken))
+            {
+                requestUrl += $"?auth={_options.FirebaseAuthToken}";
+            }
         }
 
         // Serialize batch
-        string json;
+        string json = JsonSerializer.Serialize(batch, SensorDataJsonContext.Default.SensorDataBatch);
+        HttpContent content;
+
         if (_options.EnableCompression)
         {
-            json = JsonSerializer.Serialize(batch, SensorDataJsonContext.Default.SensorDataBatch);
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            using var memoryStream = new MemoryStream();
+            using (var gzipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+            {
+                await gzipStream.WriteAsync(jsonBytes, cancellationToken);
+            }
+            
+            var compressedBytes = memoryStream.ToArray();
+            var byteArrayContent = new ByteArrayContent(compressedBytes);
+            byteArrayContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            byteArrayContent.Headers.ContentEncoding.Add("gzip");
+            
+            content = byteArrayContent;
         }
         else
         {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            json = JsonSerializer.Serialize(batch, SensorDataJsonContext.Default.SensorDataBatch);
+            content = new StringContent(json, Encoding.UTF8, "application/json");
         }
-
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Add custom headers
         foreach (var header in _options.Headers)
@@ -251,7 +285,17 @@ public sealed class UploadService : IUploadService
         using var cts = new CancellationTokenSource(_options.UploadTimeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 
-        var response = await _httpClient.PostAsync(_options.ApiEndpointUrl, content, linkedCts.Token);
+        HttpResponseMessage response;
+        if (_options.Target == UploadTarget.Firebase)
+        {
+            // Firebase REST API uses PUT to set data at a specific path, or POST to append to a list
+            // We'll use PUT since we're generating a specific ID
+            response = await _httpClient.PutAsync(requestUrl, content, linkedCts.Token);
+        }
+        else
+        {
+            response = await _httpClient.PostAsync(requestUrl, content, linkedCts.Token);
+        }
 
         // Check response
         if (response.IsSuccessStatusCode)
